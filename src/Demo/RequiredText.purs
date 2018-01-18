@@ -1,22 +1,21 @@
 module Demo.RequiredText
 where
 
-import Bonsai.Forms
-import Bonsai.Forms.PureCss
 import Prelude
 
+import Bonsai.Forms (FormModel(..), FormMsg, form, mkTextInput, textInput)
+import Bonsai.Forms.PureCss (alignedForm)
 import Bonsai.Html as H
-import Bonsai.Html.Attributes as A
 import Data.Foldable (traverse_)
-import Data.Map (empty, toAscUnfoldable)
+import Data.Map (toAscUnfoldable)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 
 view :: FormModel -> H.VNode FormMsg
 view fm@(FormModel model) =
   H.render $ do
-    alignedForm fm $ form $ do
-      fieldset (Just "required_text") (Just "A required text field and an optional one") $ do
+    alignedForm "required" fm $
+      form Nothing (Just "A required text field and an optional one") $ do
         textInput (mkTextInput "name" "Name") { required = true }
         textInput (mkTextInput "comment" "Comment")
     H.hr

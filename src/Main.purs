@@ -2,18 +2,17 @@ module Main where
 
 import Prelude
 
-import Bonsai (BONSAI, ElementId(..), UpdateResult, debugProgram, mapResult, plainResult, program, pureCommand, window)
-import Bonsai.Forms (FormModel(..), FormMsg, emptyFormModel, updateForm)
-import Bonsai.Html (Property, VNode, a, div_, li, nav, onWithOptions, render, text, ul, vnode, (!), (#!))
+import Bonsai (BONSAI, ElementId(ElementId), UpdateResult, debugProgram, mapResult, plainResult, pureCommand, window)
+import Bonsai.Forms (FormModel, FormMsg, emptyFormModel, updateForm)
+import Bonsai.Html (Property, VNode, a, button, div_, hr, li, nav, onWithOptions, render, text, ul, vnode, (!), (#!))
 import Bonsai.Html.Attributes (classList, cls, href, style)
-import Bonsai.Html.Events (preventDefaultStopPropagation)
-import Bonsai.Types (CmdDecoder)
+import Bonsai.Html.Events (onClick, preventDefaultStopPropagation)
 import Bonsai.VirtualDom as VD
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Data.Tuple (Tuple(..))
-import Demo.RequiredText as RequiredText
 import Demo.ManualForm as ManualForm
+import Demo.RequiredText as RequiredText
 
 data Demo
   = RequiredTextDemo
@@ -31,6 +30,7 @@ type MasterModel =
 
 data MasterMsg
   = SetCurrent Demo
+  | EmptyModel
   | ManualFormMsg ManualForm.Msg
   | RequiredTextMsg FormMsg
 
@@ -39,6 +39,8 @@ update model msg =
   case msg of
     SetCurrent demo ->
       plainResult $ model { active = demo }
+    EmptyModel ->
+      plainResult emptyModel
     ManualFormMsg simpleMsg ->
       mapResult ( model { simpleFormModel = _ } ) ManualFormMsg
         (ManualForm.update model.simpleFormModel simpleMsg)
@@ -61,17 +63,24 @@ view model =
 
 viewMenu :: Demo -> VNode MasterMsg
 viewMenu active =
-  render $
-    nav ! cls "pure-u-1-12 pure-menu" $
-      ul ! cls "pure-menu-list" $ do
-        li ! menuItemClasses RequiredTextDemo $
-          a ! cls "pure-menu-link" ! href "#"
-            ! onClickPreventDefault (SetCurrent RequiredTextDemo)
-            $ text "Required Text"
-        li ! menuItemClasses ManualFormDemo $
-          a ! cls "pure-menu-link" ! href "#"
-            ! onClickPreventDefault (SetCurrent ManualFormDemo)
-            $ text "Simple Form"
+  render $ do
+    div_ ! cls "pure-u-1-12" $ do
+      nav ! cls "pure-menu" $
+        ul ! cls "pure-menu-list" $ do
+          li ! menuItemClasses RequiredTextDemo $
+            a ! cls "pure-menu-link" ! href "#"
+              ! onClickPreventDefault (SetCurrent RequiredTextDemo)
+              $ text "Required Text"
+          li ! menuItemClasses ManualFormDemo $
+            a ! cls "pure-menu-link" ! href "#"
+              ! onClickPreventDefault (SetCurrent ManualFormDemo)
+              $ text "Simple Form"
+      hr
+      button
+        ! cls "pure-button"
+        ! onClick EmptyModel
+        $ text "Empty Models"
+
 
   where
     menuItemClasses ex =

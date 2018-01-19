@@ -1,9 +1,9 @@
-module Demo.Checkbox
+module Demo.TextInput
 where
 
 import Prelude
 
-import Bonsai.Forms (FormMsg, checkboxInput, form, textInput, withLegend, withMessage)
+import Bonsai.Forms (FormMsg, form, textInput, withLegend, withMessage)
 import Bonsai.Forms.PureCss (alignedForm)
 import Bonsai.Html as H
 import Bonsai.Html.Attributes as A
@@ -14,7 +14,8 @@ view :: Common.Model -> H.VNode FormMsg
 view model =
   H.render $ do
     alignedForm Nothing model.formModel $
-      form "checkbox" `withLegend` "Checkboxes ..." $ do
+      form "required" `withLegend` "Text fields ..." $ do
         textInput "name" "Name" [ A.required true ] `withMessage` "Required"
-        checkboxInput "canSing" "Can Sing" [ ]
+        textInput "code" "Code" [ A.pattern "[A-Z]*"] `withMessage` "All uppercase."
+        textInput "comment" "Comment" [ ]
     H.vnode $ Common.view model

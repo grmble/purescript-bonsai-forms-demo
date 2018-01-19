@@ -3,7 +3,7 @@ module Main where
 import Prelude
 
 import Bonsai (BONSAI, ElementId(ElementId), UpdateResult, debugProgram, mapResult, plainResult, pureCommand, window)
-import Bonsai.Forms (FormModel, FormMsg, emptyFormModel, updateForm)
+import Bonsai.Forms (FormMsg)
 import Bonsai.Html (Property, VNode, a, button, div_, hr, li, nav, onWithOptions, render, text, ul, vnode, (!), (#!))
 import Bonsai.Html.Attributes (classList, cls, href, style)
 import Bonsai.Html.Events (onClick, preventDefaultStopPropagation)
@@ -11,12 +11,13 @@ import Bonsai.VirtualDom as VD
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Data.Tuple (Tuple(..))
+import Demo.Common as Common
 import Demo.ManualForm as ManualForm
-import Demo.RequiredText as RequiredText
+import Demo.TextInput as TextInput
 import Demo.Checkbox as Checkbox
 
 data Demo
-  = RequiredTextDemo
+  = TextInputDemo
   | CheckboxDemo
   -- the following ones are manually coded for comparison
   | ManualFormDemo
@@ -27,15 +28,15 @@ derive instance eqExample :: Eq Demo
 type MasterModel =
   { active :: Demo
   , simpleFormModel :: ManualForm.Model
-  , requiredTextModel :: FormModel
-  , checkboxModel :: FormModel
+  , textInputModel :: Common.Model
+  , checkboxModel :: Common.Model
   }
 
 data MasterMsg
   = SetCurrent Demo
   | EmptyModel
   | ManualFormMsg ManualForm.Msg
-  | RequiredTextMsg FormMsg
+  | TextInputMsg FormMsg
   | CheckboxMsg FormMsg
 
 update :: forall eff. MasterModel -> MasterMsg -> UpdateResult eff MasterModel MasterMsg
@@ -46,12 +47,12 @@ update model EmptyModel =
 update model (ManualFormMsg msg) =
   mapResult ( model { simpleFormModel = _ } ) ManualFormMsg
     (ManualForm.update model.simpleFormModel msg)
-update model (RequiredTextMsg msg) =
-  mapResult ( model { requiredTextModel = _ } ) RequiredTextMsg
-    (updateForm model.requiredTextModel msg)
+update model (TextInputMsg msg) =
+  mapResult ( model { textInputModel = _ } ) TextInputMsg
+    (Common.update model.textInputModel msg)
 update model (CheckboxMsg msg) =
   mapResult ( model { checkboxModel = _ } ) CheckboxMsg
-    (updateForm model.checkboxModel msg)
+    (Common.update model.checkboxModel msg)
 
 view :: MasterModel -> VNode MasterMsg
 view model =
@@ -63,8 +64,8 @@ view model =
           case model.active of
             ManualFormDemo ->
               vnode (map ManualFormMsg $ ManualForm.view model.simpleFormModel)
-            RequiredTextDemo ->
-              vnode (map RequiredTextMsg $ RequiredText.view model.requiredTextModel)
+            TextInputDemo ->
+              vnode (map TextInputMsg $ TextInput.view model.textInputModel)
             CheckboxDemo ->
               vnode (map CheckboxMsg $ Checkbox.view model.checkboxModel)
 
@@ -74,10 +75,10 @@ viewMenu active =
     div_ ! cls "pure-u-1-12" $ do
       nav ! cls "pure-menu" $
         ul ! cls "pure-menu-list" $ do
-          li ! menuItemClasses RequiredTextDemo $
+          li ! menuItemClasses TextInputDemo $
             a ! cls "pure-menu-link" ! href "#"
-              ! onClickPreventDefault (SetCurrent RequiredTextDemo)
-              $ text "Required Text"
+              ! onClickPreventDefault (SetCurrent TextInputDemo)
+              $ text "Text Input"
           li ! menuItemClasses CheckboxDemo $
             a ! cls "pure-menu-link" ! href "#"
               ! onClickPreventDefault (SetCurrent CheckboxDemo)
@@ -105,10 +106,10 @@ onClickPreventDefault msg =
 
 emptyModel :: MasterModel
 emptyModel =
-  { active: RequiredTextDemo
+  { active: TextInputDemo
   , simpleFormModel: ManualForm.emptyModel
-  , requiredTextModel : emptyFormModel
-  , checkboxModel: emptyFormModel
+  , textInputModel : Common.emptyModel
+  , checkboxModel: Common.emptyModel
   }
 
 main :: Eff (bonsai::BONSAI, exception::EXCEPTION) Unit

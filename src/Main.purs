@@ -13,9 +13,11 @@ import Control.Monad.Eff.Exception (EXCEPTION)
 import Data.Tuple (Tuple(..))
 import Demo.ManualForm as ManualForm
 import Demo.RequiredText as RequiredText
+import Demo.Checkbox as Checkbox
 
 data Demo
   = RequiredTextDemo
+  | CheckboxDemo
   -- the following ones are manually coded for comparison
   | ManualFormDemo
 
@@ -26,6 +28,7 @@ type MasterModel =
   { active :: Demo
   , simpleFormModel :: ManualForm.Model
   , requiredTextModel :: FormModel
+  , checkboxModel :: FormModel
   }
 
 data MasterMsg
@@ -33,20 +36,22 @@ data MasterMsg
   | EmptyModel
   | ManualFormMsg ManualForm.Msg
   | RequiredTextMsg FormMsg
+  | CheckboxMsg FormMsg
 
 update :: forall eff. MasterModel -> MasterMsg -> UpdateResult eff MasterModel MasterMsg
-update model msg =
-  case msg of
-    SetCurrent demo ->
-      plainResult $ model { active = demo }
-    EmptyModel ->
-      plainResult emptyModel
-    ManualFormMsg simpleMsg ->
-      mapResult ( model { simpleFormModel = _ } ) ManualFormMsg
-        (ManualForm.update model.simpleFormModel simpleMsg)
-    RequiredTextMsg msg ->
-      mapResult ( model { requiredTextModel = _ } ) RequiredTextMsg
-        (updateForm model.requiredTextModel msg)
+update model (SetCurrent demo) =
+  plainResult $ model { active = demo }
+update model EmptyModel =
+  plainResult emptyModel
+update model (ManualFormMsg msg) =
+  mapResult ( model { simpleFormModel = _ } ) ManualFormMsg
+    (ManualForm.update model.simpleFormModel msg)
+update model (RequiredTextMsg msg) =
+  mapResult ( model { requiredTextModel = _ } ) RequiredTextMsg
+    (updateForm model.requiredTextModel msg)
+update model (CheckboxMsg msg) =
+  mapResult ( model { checkboxModel = _ } ) CheckboxMsg
+    (updateForm model.checkboxModel msg)
 
 view :: MasterModel -> VNode MasterMsg
 view model =
@@ -60,6 +65,8 @@ view model =
               vnode (map ManualFormMsg $ ManualForm.view model.simpleFormModel)
             RequiredTextDemo ->
               vnode (map RequiredTextMsg $ RequiredText.view model.requiredTextModel)
+            CheckboxDemo ->
+              vnode (map CheckboxMsg $ Checkbox.view model.checkboxModel)
 
 viewMenu :: Demo -> VNode MasterMsg
 viewMenu active =
@@ -71,6 +78,10 @@ viewMenu active =
             a ! cls "pure-menu-link" ! href "#"
               ! onClickPreventDefault (SetCurrent RequiredTextDemo)
               $ text "Required Text"
+          li ! menuItemClasses CheckboxDemo $
+            a ! cls "pure-menu-link" ! href "#"
+              ! onClickPreventDefault (SetCurrent CheckboxDemo)
+              $ text "Checkbox"
           li ! menuItemClasses ManualFormDemo $
             a ! cls "pure-menu-link" ! href "#"
               ! onClickPreventDefault (SetCurrent ManualFormDemo)
@@ -97,6 +108,7 @@ emptyModel =
   { active: RequiredTextDemo
   , simpleFormModel: ManualForm.emptyModel
   , requiredTextModel : emptyFormModel
+  , checkboxModel: emptyFormModel
   }
 
 main :: Eff (bonsai::BONSAI, exception::EXCEPTION) Unit

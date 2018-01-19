@@ -3,24 +3,22 @@ where
 
 import Prelude
 
-import Bonsai (UpdateResult, EventDecoder, plainResult)
-import Bonsai.Html (button, div_, fieldset, form, hr, input, label, legend, onWithOptions, render, span, text, (!))
-import Bonsai.Html.Attributes (cls, for, id_, name, pattern, placeholder, required, title, typ)
+import Bonsai (UpdateResult, plainResult)
+import Bonsai.Html (button, div_, fieldset, form, hr, input, label, legend, render, span, text, (!))
+import Bonsai.Html.Attributes (cls, for, id_, name, pattern, placeholder, required, typ)
 import Bonsai.Html.Attributes as A
 import Bonsai.Html.Events (onSubmit)
-import Bonsai.Types (CmdDecoder, f2cmd)
 import Bonsai.VirtualDom (VNode)
+import Control.Alt ((<|>))
 import Data.Foreign.Class (class Decode, class Encode)
 import Data.Foreign.Generic (defaultOptions, encodeJSON, genericDecode, genericEncode)
 import Data.Foreign.Generic.Types (Options)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Int (fromString)
-import Data.Maybe (Maybe(..), fromJust, fromMaybe, maybe)
-import Data.StrMap (StrMap, lookup)
-import Data.StrMap.Unsafe (unsafeIndex)
-import Debug.Trace (spy, trace, traceAny)
-import Partial.Unsafe (unsafePartial)
+import Data.Map (Map, lookup)
+import Data.Maybe (Maybe(..))
+import Debug.Trace (traceAny)
 
 newtype Data =
   Data
@@ -67,15 +65,20 @@ xxx = f2cmd
 asdf = onWithOptions "blubb"
 --}
 
-extractOK :: StrMap String -> Msg
+extractOK :: Map String String -> Msg
 extractOK m = traceAny (show m) \_ ->
-  OK $ Just $ Data
-    { name: unsafeIndex m "name"
-    , age: fromMaybe (-1) $ fromString (unsafeIndex m "age")
-    , canDance: unsafeIndex m "dance" == "on"
-    , canSing: unsafeIndex m "sing" == "on"
-    , canProgram: unsafeIndex m "program" == "on"
-    }
+  OK $ mkData
+    <$> lookup "name" m
+    <*> (lookup "age" m >>= fromString)
+    <*> (map toBoolean (lookup "dance" m) <|> Just false)
+    <*> (map toBoolean (lookup "sing" m) <|> Just false)
+    <*> (map toBoolean (lookup "program" m) <|> Just false)
+  where
+    toBoolean s =
+      s == "on"
+    mkData name age canDance canSing canProgram =
+      Data { name, age, canDance, canSing, canProgram }
+
 
 view :: Model -> VNode Msg
 view model =
@@ -87,7 +90,7 @@ view model =
           legend $ text "Simple Form, manual"
           div_ ! cls "pure-control-group" $ do
             label ! for "name" $ text "Name"
-            input ! id_ "xxx.name"
+            input ! id_ "name"
               ! name "name"
               ! typ "text"
               ! required true

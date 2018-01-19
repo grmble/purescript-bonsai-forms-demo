@@ -3,9 +3,10 @@ where
 
 import Prelude
 
-import Bonsai.Forms (FormModel(..), FormMsg, form, mkTextInput, textInput)
+import Bonsai.Forms (FormModel(..), FormMsg, form, textInput)
 import Bonsai.Forms.PureCss (alignedForm)
 import Bonsai.Html as H
+import Bonsai.Html.Attributes as A
 import Data.Foldable (traverse_)
 import Data.Map (toAscUnfoldable)
 import Data.Maybe (Maybe(..))
@@ -14,10 +15,10 @@ import Data.Tuple (Tuple(..))
 view :: FormModel -> H.VNode FormMsg
 view fm@(FormModel model) =
   H.render $ do
-    alignedForm "required" fm $
-      form Nothing (Just "A required text field and an optional one") $ do
-        textInput (mkTextInput "name" "Name") { required = true }
-        textInput (mkTextInput "comment" "Comment")
+    alignedForm Nothing fm $
+      form "required" (Just "A required text field and an optional one") $ do
+        textInput "name" "Name" [ A.required true ]
+        textInput "comment" "Comment" [ ]
     H.hr
     H.ul $ do
       traverse_ (\(Tuple k v) ->

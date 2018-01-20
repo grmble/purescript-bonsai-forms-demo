@@ -4,18 +4,18 @@ import Prelude
 
 import Bonsai (BONSAI, ElementId(ElementId), UpdateResult, debugProgram, mapResult, plainResult, pureCommand, window)
 import Bonsai.Forms (FormMsg)
-import Bonsai.Html (Property, VNode, a, button, div_, hr, li, nav, onWithOptions, render, text, ul, vnode, (!), (#!))
+import Bonsai.Html (Property, VNode, a, button, div_, hr, keyedElement, li, nav, onWithOptions, render, text, ul, vnode, (!), (#!))
 import Bonsai.Html.Attributes (classList, cls, href, style)
 import Bonsai.Html.Events (onClick, preventDefaultStopPropagation)
 import Bonsai.VirtualDom as VD
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Data.Tuple (Tuple(..))
+import Demo.Checkbox as Checkbox
 import Demo.Common as Common
 import Demo.ManualForm as ManualForm
-import Demo.TextInput as TextInput
-import Demo.Checkbox as Checkbox
 import Demo.Radio as Radio
+import Demo.TextInput as TextInput
 
 data Demo
   = TextInputDemo
@@ -69,14 +69,27 @@ view model =
       div_ ! cls "pure-u-11-12" $
         div_ #! style "margin-left" "2em" $
           case model.active of
+
+            -- the keyedElements are guarding against vdom reuse of
+            -- the example forms.  there is a remaining weirndess without this:
+            -- in the checkbox example, select all the boxes. switch to radio.
+            -- back to checkbox. radio again. radio selection is lost.
             ManualFormDemo ->
-              vnode (map ManualFormMsg $ ManualForm.view model.simpleFormModel)
+              keyedElement "div" []
+                [ Tuple "manual" (map ManualFormMsg $ ManualForm.view model.simpleFormModel) ]
+              -- vnode (map ManualFormMsg $ ManualForm.view model.simpleFormModel)
             TextInputDemo ->
-              vnode (map TextInputMsg $ TextInput.view model.textInputModel)
+              keyedElement "div" []
+                [ Tuple "text" (map TextInputMsg $ TextInput.view model.textInputModel) ]
+              -- vnode (map TextInputMsg $ TextInput.view model.textInputModel)
             CheckboxDemo ->
-              vnode (map CheckboxMsg $ Checkbox.view model.checkboxModel)
+              keyedElement "div" []
+                [ Tuple "checkbox" (map CheckboxMsg $ Checkbox.view model.checkboxModel) ]
+              -- vnode (map CheckboxMsg $ Checkbox.view model.checkboxModel)
             RadioDemo ->
-              vnode (map RadioMsg $ Radio.view model.radioModel)
+              keyedElement "div" []
+                [ Tuple "radio" (map RadioMsg $ Radio.view model.radioModel) ]
+              -- vnode (map RadioMsg $ Radio.view model.radioModel)
 
 viewMenu :: Demo -> VNode MasterMsg
 viewMenu active =
@@ -123,7 +136,7 @@ emptyModel =
   , simpleFormModel: ManualForm.emptyModel
   , textInputModel : Common.emptyModel
   , checkboxModel: Common.emptyModel
-  , radioModel: Common.emptyModel
+  , radioModel: Radio.emptyModel
   }
 
 main :: Eff (bonsai::BONSAI, exception::EXCEPTION) Unit

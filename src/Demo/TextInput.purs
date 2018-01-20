@@ -14,7 +14,7 @@ view :: Common.Model -> H.VNode FormMsg
 view model =
   H.render $ do
     alignedForm Nothing model.formModel $
-      form "required" `withLegend` "Text fields ..." $ do
+      form "text" `withLegend` "Text fields ..." $ do
         textInput "name" "Name" [ A.required true ] `withMessage` "Required"
         textInput "code" "Code" [ A.pattern "[A-Z]*"] `withMessage` "All uppercase."
         textInput "comment" "Comment" [ ]

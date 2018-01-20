@@ -15,10 +15,12 @@ import Demo.Common as Common
 import Demo.ManualForm as ManualForm
 import Demo.TextInput as TextInput
 import Demo.Checkbox as Checkbox
+import Demo.Radio as Radio
 
 data Demo
   = TextInputDemo
   | CheckboxDemo
+  | RadioDemo
   -- the following ones are manually coded for comparison
   | ManualFormDemo
 
@@ -30,6 +32,7 @@ type MasterModel =
   , simpleFormModel :: ManualForm.Model
   , textInputModel :: Common.Model
   , checkboxModel :: Common.Model
+  , radioModel :: Common.Model
   }
 
 data MasterMsg
@@ -38,6 +41,7 @@ data MasterMsg
   | ManualFormMsg ManualForm.Msg
   | TextInputMsg FormMsg
   | CheckboxMsg FormMsg
+  | RadioMsg FormMsg
 
 update :: forall eff. MasterModel -> MasterMsg -> UpdateResult eff MasterModel MasterMsg
 update model (SetCurrent demo) =
@@ -53,6 +57,9 @@ update model (TextInputMsg msg) =
 update model (CheckboxMsg msg) =
   mapResult ( model { checkboxModel = _ } ) CheckboxMsg
     (Common.update model.checkboxModel msg)
+update model (RadioMsg msg) =
+  mapResult ( model { radioModel = _ } ) RadioMsg
+    (Common.update model.radioModel msg)
 
 view :: MasterModel -> VNode MasterMsg
 view model =
@@ -68,6 +75,8 @@ view model =
               vnode (map TextInputMsg $ TextInput.view model.textInputModel)
             CheckboxDemo ->
               vnode (map CheckboxMsg $ Checkbox.view model.checkboxModel)
+            RadioDemo ->
+              vnode (map RadioMsg $ Radio.view model.radioModel)
 
 viewMenu :: Demo -> VNode MasterMsg
 viewMenu active =
@@ -83,6 +92,10 @@ viewMenu active =
             a ! cls "pure-menu-link" ! href "#"
               ! onClickPreventDefault (SetCurrent CheckboxDemo)
               $ text "Checkbox"
+          li ! menuItemClasses RadioDemo $
+            a ! cls "pure-menu-link" ! href "#"
+              ! onClickPreventDefault (SetCurrent RadioDemo)
+              $ text "Radio"
           li ! menuItemClasses ManualFormDemo $
             a ! cls "pure-menu-link" ! href "#"
               ! onClickPreventDefault (SetCurrent ManualFormDemo)
@@ -110,6 +123,7 @@ emptyModel =
   , simpleFormModel: ManualForm.emptyModel
   , textInputModel : Common.emptyModel
   , checkboxModel: Common.emptyModel
+  , radioModel: Common.emptyModel
   }
 
 main :: Eff (bonsai::BONSAI, exception::EXCEPTION) Unit

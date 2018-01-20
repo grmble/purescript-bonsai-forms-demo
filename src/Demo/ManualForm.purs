@@ -3,11 +3,13 @@ where
 
 import Prelude
 
-import Bonsai (UpdateResult, plainResult)
-import Bonsai.Html (button, div_, fieldset, form, hr, input, label, legend, render, span, text, (!))
-import Bonsai.Html.Attributes (cls, for, id_, name, pattern, placeholder, required, typ)
+import Bonsai (UpdateResult, plainResult, pureCommand)
+import Bonsai.EventDecoder (targetValuesEvent)
+import Bonsai.Html (Property, button, div_, fieldset, form, hr, input, label, legend, onWithOptions, render, span, text, (!))
+import Bonsai.Html.Attributes (checked, cls, for, id_, name, pattern, placeholder, required, typ, value)
 import Bonsai.Html.Attributes as A
-import Bonsai.Html.Events (onSubmit)
+import Bonsai.Html.Events (preventDefaultStopPropagation)
+import Bonsai.Types (f2cmd)
 import Bonsai.VirtualDom (VNode)
 import Control.Alt ((<|>))
 import Data.Foreign.Class (class Decode, class Encode)
@@ -16,6 +18,7 @@ import Data.Foreign.Generic.Types (Options)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Int (fromString)
+import Data.List.NonEmpty as NEL
 import Data.Map (Map, lookup)
 import Data.Maybe (Maybe(..))
 import Debug.Trace (traceAny)
@@ -65,20 +68,22 @@ xxx = f2cmd
 asdf = onWithOptions "blubb"
 --}
 
-extractOK :: Map String String -> Msg
+extractOK :: Map String (NEL.NonEmptyList String) -> Msg
 extractOK m = traceAny (show m) \_ ->
   OK $ mkData
-    <$> lookup "name" m
-    <*> (lookup "age" m >>= fromString)
-    <*> (map toBoolean (lookup "dance" m) <|> Just false)
-    <*> (map toBoolean (lookup "sing" m) <|> Just false)
-    <*> (map toBoolean (lookup "program" m) <|> Just false)
+    <$> map NEL.head (lookup "name" m)
+    <*> (map NEL.head (lookup "age" m) >>= fromString)
+    <*> (map (NEL.any (_ == "dance")) (lookup "can" m) <|> Just false)
+    <*> (map (NEL.any (_ == "sing")) (lookup "can" m) <|> Just false)
+    <*> (map (NEL.any (_ == "program")) (lookup "can" m) <|> Just false)
   where
-    toBoolean s =
-      s == "on"
     mkData name age canDance canSing canProgram =
       Data { name, age, canDance, canSing, canProgram }
 
+onSubmit :: forall msg. (Map String (NEL.NonEmptyList String) -> msg) -> Property msg
+onSubmit cmdFn =
+   onWithOptions "submit" preventDefaultStopPropagation
+    (f2cmd (pureCommand <<< cmdFn) <<< targetValuesEvent)
 
 view :: Model -> VNode Msg
 view model =
@@ -110,17 +115,35 @@ view model =
               ! placeholder "Age"
 
           div_ ! cls "pure-controls" $ do
-            label ! for "dance" $ do
-              input ! id_ "dance" ! name "dance" ! typ "checkbox"
-              text "Dance"
+            label ! cls "pure-checkbox" $ do
+              input ! name "can" ! typ "checkbox" ! value "dance"
+              text " Dance"
+            label ! cls "pure-checkbox" $ do
+              input ! name "can" ! typ "checkbox" ! value "sing"
+              text " Sing"
+            label ! cls "pure-checkbox" $ do
+              input ! name "can" ! typ "checkbox" ! value "program"
+              text " Program"
+
           div_ ! cls "pure-controls" $ do
-            label ! for "sing" $ do
-              input ! id_ "sing" ! name "sing" ! typ "checkbox"
-              text "Sing"
-          div_ ! cls "pure-controls" $ do
-            label ! for "program" $ do
-              input ! id_"program" ! name "program" ! typ "checkbox"
-              text "Program"
+            label ! cls "pure-radio" $ do
+              input ! name "yesno" ! typ "radio" ! value "yes" ! checked true
+              text " Yes"
+            label ! cls "pure-radio" $ do
+              input ! name "yesno" ! typ "radio" ! value "no"
+              text " No"
+
+{--
+<label for="option-two" class="pure-radio">
+        <input id="option-two" type="radio" name="optionsRadios" value="option1" checked>
+        Here's a radio button. You can choose this one..
+    </label>
+
+    <label for="option-three" class="pure-radio">
+        <input id="option-three" type="radio" name="optionsRadios" value="option2">
+        ..Or this one!
+    </label>
+--}
 
           div_ ! cls "pure-controls" $ do
             button

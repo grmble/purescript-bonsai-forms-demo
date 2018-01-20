@@ -4,10 +4,12 @@ where
 import Prelude
 
 import Bonsai (UpdateResult, mapResult, plainResult)
-import Bonsai.Forms (FormModel(..), FormMsg(..), emptyFormModel, updateForm)
+import Bonsai.Forms (FormModel, FormMsg(..), emptyFormModel, updateForm)
 import Bonsai.Html as H
 import Bonsai.VirtualDom (VNode)
 import Data.Foldable (traverse_)
+import Data.List (List)
+import Data.List.NonEmpty as NEL
 import Data.Map (toAscUnfoldable)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
@@ -41,12 +43,12 @@ view model =
     H.h3 $ H.text "Last Button"
     H.p $ H.text (show model.button)
 
-    let (FormModel fmodel) = model.formModel
+    let fmodel = model.formModel
     H.h3 $ H.text "Model"
     H.ul $ do
       traverse_ (\(Tuple k v) ->
           H.li $ do
             H.text k
             H.text ": "
-            H.text v)
-        (toAscUnfoldable fmodel :: Array (Tuple String String))
+            H.text $ NEL.intercalate ", " v)
+        (toAscUnfoldable fmodel :: List (Tuple String (NEL.NonEmptyList String)))

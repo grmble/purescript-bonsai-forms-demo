@@ -4,7 +4,7 @@ import Prelude
 
 import Bonsai (BONSAI, ElementId(ElementId), UpdateResult, debugProgram, mapResult, plainResult, pureCommand, window)
 import Bonsai.Forms (FormMsg)
-import Bonsai.Html (Property, VNode, a, button, div_, hr, keyedElement, li, nav, onWithOptions, render, text, ul, vnode, (!), (#!))
+import Bonsai.Html (Property, VNode, a, button, div_, hr, li, nav, onWithOptions, render, text, ul, vnode, (!), (#!))
 import Bonsai.Html.Attributes (classList, cls, href, style)
 import Bonsai.Html.Events (onClick, preventDefaultStopPropagation)
 import Bonsai.VirtualDom as VD
@@ -69,27 +69,14 @@ view model =
       div_ ! cls "pure-u-11-12" $
         div_ #! style "margin-left" "2em" $
           case model.active of
-
-            -- the keyedElements are guarding against vdom reuse of
-            -- the example forms.  there is a remaining weirndess without this:
-            -- in the checkbox example, select all the boxes. switch to radio.
-            -- back to checkbox. radio again. radio selection is lost.
             ManualFormDemo ->
-              keyedElement "div" []
-                [ Tuple "manual" (map ManualFormMsg $ ManualForm.view model.simpleFormModel) ]
-              -- vnode (map ManualFormMsg $ ManualForm.view model.simpleFormModel)
+              vnode (map ManualFormMsg $ ManualForm.view model.simpleFormModel)
             TextInputDemo ->
-              keyedElement "div" []
-                [ Tuple "text" (map TextInputMsg $ TextInput.view model.textInputModel) ]
-              -- vnode (map TextInputMsg $ TextInput.view model.textInputModel)
+              vnode (map TextInputMsg $ TextInput.view model.textInputModel)
             CheckboxDemo ->
-              keyedElement "div" []
-                [ Tuple "checkbox" (map CheckboxMsg $ Checkbox.view model.checkboxModel) ]
-              -- vnode (map CheckboxMsg $ Checkbox.view model.checkboxModel)
+              vnode (map CheckboxMsg $ Checkbox.view model.checkboxModel)
             RadioDemo ->
-              keyedElement "div" []
-                [ Tuple "radio" (map RadioMsg $ Radio.view model.radioModel) ]
-              -- vnode (map RadioMsg $ Radio.view model.radioModel)
+              vnode (map RadioMsg $ Radio.view model.radioModel)
 
 viewMenu :: Demo -> VNode MasterMsg
 viewMenu active =

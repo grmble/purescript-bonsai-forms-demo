@@ -3,10 +3,9 @@ where
 
 import Prelude
 
-import Bonsai.Forms (FormMsg, form, textInput, withLegend, withMessage)
+import Bonsai.Forms (FormMsg, Prop(..), form, textInput, withLegend, withMessage)
 import Bonsai.Forms.PureCss (alignedForm)
 import Bonsai.Html as H
-import Bonsai.Html.Attributes as A
 import Data.Maybe (Maybe(..))
 import Demo.Common as Common
 
@@ -15,7 +14,9 @@ view model =
   H.render $ do
     alignedForm Nothing model.formModel $
       form "text" `withLegend` "Text fields ..." $ do
-        textInput "name" "Name" [ A.required true ] `withMessage` "Required"
-        textInput "code" "Code" [ A.pattern "[A-Z]*"] `withMessage` "All uppercase."
+        textInput "name" "Name" [ Required true ] `withMessage` "Required"
+        textInput "code" "Code" [ Pattern "[A-Z]*"] `withMessage` "All uppercase."
+        textInput "longInput" "Long input" [ ClassList ["pure-u-1-2"] ]
+        textInput "auto" "Autocomplete" [ Autocomplete "on" ]
         textInput "comment" "Comment" [ ]
     H.vnode $ Common.view model

@@ -3,9 +3,10 @@ where
 
 import Prelude
 
-import Bonsai.Forms (FormMsg, Prop(..), emptyFormModel, form, radioInput, set, textInput, withLegend, withMessage)
+import Bonsai.Forms (FormMsg, emptyFormModel, form, radioInput, set, textInput, withLegend, withMessage, (!))
 import Bonsai.Forms.PureCss (alignedForm)
 import Bonsai.Html as H
+import Bonsai.Html.Attributes as A
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Demo.Common as Common
@@ -21,7 +22,7 @@ view model =
   H.render $ do
     alignedForm Nothing model.formModel $
       form "radio" `withLegend` "Radio ..." $ do
-        textInput "name" "Name" [ Required true ] `withMessage` "Required"
+        textInput "name" "Name" `withMessage` "Required" ! A.required true
         radioInput "sex"
           [ Tuple "m" "Male"
           , Tuple "f" "Female"

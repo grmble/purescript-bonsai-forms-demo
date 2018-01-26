@@ -3,13 +3,14 @@ where
 
 import Prelude
 
-import Bonsai (UpdateResult, plainResult, pureCommand)
-import Bonsai.EventDecoder (targetValuesEvent)
+import Bonsai (Cmd(..), UpdateResult, emptyCommand, plainResult, pureCommand)
+import Bonsai.EventDecoder (on, targetValuesEvent)
+import Bonsai.Forms (emptyFormModel)
 import Bonsai.Html (Property, button, div_, fieldset, form, hr, input, label, legend, onWithOptions, render, span, text, (!))
 import Bonsai.Html.Attributes (checked, cls, for, id_, name, pattern, placeholder, required, typ, value)
 import Bonsai.Html.Attributes as A
-import Bonsai.Html.Events (preventDefaultStopPropagation)
-import Bonsai.Types (f2cmd)
+import Bonsai.Html.Events (onClick, preventDefaultStopPropagation)
+import Bonsai.Types (CmdDecoder, f2cmd)
 import Bonsai.VirtualDom (VNode)
 import Control.Alt ((<|>))
 import Data.Foreign.Class (class Decode, class Encode)
@@ -43,6 +44,8 @@ type Model = Maybe Data
 
 data Msg
   = OK Model
+  | Blubb1
+  | Blubb2
   | Cancel
 
 emptyModel :: Model
@@ -57,6 +60,8 @@ update model msg =
         emptyModel
       OK model2 ->
         model2
+      _ ->
+        model
 
 {--
 submitDecoder :: EventDecoder Msg
@@ -151,7 +156,9 @@ view model =
               ! cls "pure-button pure-button-primary"
               $ text "Submit"
             button ! typ "reset" ! cls "pure-button" $ text "Reset"
+    
       hr
+
       div_ $ do
         case model of
           Nothing ->

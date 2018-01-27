@@ -14,10 +14,10 @@ view :: Common.Model -> H.VNode FormMsg
 view model =
   H.render $ do
     alignedForm Nothing model.formModel $
-      form "text" `withLegend` "Text fields ..." ! A.autocomplete false $ do
+      form "text" `withLegend` "Text fields ..." $ do
         textInput "name" "Name" `withMessage` "Required" ! A.required true
         textInput "code" "Code" `withMessage` "All uppercase." ! A.pattern "[A-Z]*"
         textInput "longInput" "Long input" ! A.cls "pure-u-1-2"
-        textInput "auto" "Autocomplete" ! A.autocomplete true
+        textInput "noauto" "No Autocomplete" ! A.autocomplete false
         textInput "comment" "Comment"
     H.vnode $ Common.view model

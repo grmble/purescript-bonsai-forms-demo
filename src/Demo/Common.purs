@@ -4,7 +4,7 @@ where
 import Prelude
 
 import Bonsai (UpdateResult, mapResult, plainResult)
-import Bonsai.Forms (FormModel, FormMsg(..), emptyFormModel, updateForm)
+import Bonsai.Forms.Model (FormModel, FormMsg(..), emptyFormModel, updateForm)
 import Bonsai.Html as H
 import Bonsai.VirtualDom (VNode)
 import Data.Foldable (traverse_)

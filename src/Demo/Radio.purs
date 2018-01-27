@@ -3,7 +3,8 @@ where
 
 import Prelude
 
-import Bonsai.Forms (FormMsg, emptyFormModel, form, radioInput, set, textInput, withLegend, withMessage, (!))
+import Bonsai.Forms (FormMsg, form, radioInput, textInput, withLegend, withMessage, (!))
+import Bonsai.Forms.Model (emptyFormModel, insert)
 import Bonsai.Forms.PureCss (alignedForm)
 import Bonsai.Html as H
 import Bonsai.Html.Attributes as A
@@ -14,7 +15,7 @@ import Demo.Common as Common
 emptyModel :: Common.Model
 emptyModel =
   { button: Nothing
-  , formModel: set "radio_sex" "m" $ emptyFormModel
+  , formModel: insert "radio_sex" "m" $ emptyFormModel
   }
 
 view :: Common.Model -> H.VNode FormMsg

@@ -13,7 +13,7 @@ import Control.Monad.Eff.Exception (EXCEPTION)
 import Data.Tuple (Tuple(..))
 import Demo.Checkbox as Checkbox
 import Demo.Common as Common
-import Demo.DateInput as DateInput
+import Demo.MiscInput as MiscInput
 import Demo.ManualForm as ManualForm
 import Demo.NumberInput as NumberInput
 import Demo.Radio as Radio
@@ -22,7 +22,7 @@ import Demo.TextInput as TextInput
 data Demo
   = TextInputDemo
   | NumberInputDemo
-  | DateInputDemo
+  | MiscInputDemo
   | CheckboxDemo
   | RadioDemo
   -- the following ones are manually coded for comparison
@@ -36,7 +36,7 @@ type MasterModel =
   , simpleFormModel :: ManualForm.Model
   , textInputModel :: Common.Model
   , numberInputModel :: Common.Model
-  , dateInputModel :: Common.Model
+  , miscInputModel :: Common.Model
   , checkboxModel :: Common.Model
   , radioModel :: Common.Model
   }
@@ -47,7 +47,7 @@ data MasterMsg
   | ManualFormMsg ManualForm.Msg
   | TextInputMsg FormMsg
   | NumberInputMsg FormMsg
-  | DateInputMsg FormMsg
+  | MiscInputMsg FormMsg
   | CheckboxMsg FormMsg
   | RadioMsg FormMsg
 
@@ -65,9 +65,9 @@ update model (TextInputMsg msg) =
 update model (NumberInputMsg msg) =
   mapResult ( model { numberInputModel = _ } ) NumberInputMsg
     (Common.update model.numberInputModel msg)
-update model (DateInputMsg msg) =
-  mapResult ( model { dateInputModel = _ } ) DateInputMsg
-    (Common.update model.dateInputModel msg)
+update model (MiscInputMsg msg) =
+  mapResult ( model { miscInputModel = _ } ) MiscInputMsg
+    (Common.update model.miscInputModel msg)
 update model (CheckboxMsg msg) =
   mapResult ( model { checkboxModel = _ } ) CheckboxMsg
     (Common.update model.checkboxModel msg)
@@ -90,9 +90,9 @@ viewMenu gridKlass active =
         ul ! cls "pure-menu-list" $ do
           item TextInputDemo "Text Input"
           item NumberInputDemo "Number Input"
-          item DateInputDemo "Date Input"
           item CheckboxDemo "Checkbox"
           item RadioDemo "Radio"
+          item MiscInputDemo "Misc Input"
           item ManualFormDemo "Manual Form"
       hr
       button
@@ -125,8 +125,8 @@ viewContent gridKlass model =
           vnode (map TextInputMsg $ TextInput.view model.textInputModel)
         NumberInputDemo ->
           vnode (map NumberInputMsg $ NumberInput.view model.numberInputModel)
-        DateInputDemo ->
-          vnode (map DateInputMsg $ DateInput.view model.dateInputModel)
+        MiscInputDemo ->
+          vnode (map MiscInputMsg $ MiscInput.view model.miscInputModel)
         CheckboxDemo ->
           vnode (map CheckboxMsg $ Checkbox.view model.checkboxModel)
         RadioDemo ->
@@ -143,7 +143,7 @@ emptyModel =
   , simpleFormModel: ManualForm.emptyModel
   , textInputModel: Common.emptyModel
   , numberInputModel: Common.emptyModel
-  , dateInputModel: Common.emptyModel
+  , miscInputModel: Common.emptyModel
   , checkboxModel: Common.emptyModel
   , radioModel: Radio.emptyModel
   }

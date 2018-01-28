@@ -3,7 +3,7 @@ where
 
 import Prelude
 
-import Bonsai.Forms (FormMsg, form, textInput, withLegend, withMessage, (!))
+import Bonsai.Forms (FormMsg, form, textInput, textareaInput, withLegend, withMessage, (!))
 import Bonsai.Forms.PureCss (alignedForm)
 import Bonsai.Html as H
 import Bonsai.Html.Attributes as A
@@ -17,7 +17,7 @@ view model =
       form "text" `withLegend` "Text fields ..." $ do
         textInput "name" "Name" `withMessage` "Required" ! A.required true
         textInput "code" "Code" `withMessage` "All uppercase." ! A.pattern "[A-Z]*"
-        textInput "longInput" "Long input" ! A.cls "pure-u-1-2"
         textInput "noauto" "No Autocomplete" ! A.autocomplete false
-        textInput "comment" "Comment"
+        textInput "longInput" "Long input" ! A.cls "pure-u-1-2"
+        textareaInput "comment" "Comment" ! A.cls "pure-u-1-2"
     H.vnode $ Common.view model

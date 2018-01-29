@@ -10,7 +10,7 @@ import Bonsai.Forms.PureCss (alignedForm)
 import Bonsai.Html as H
 import Bonsai.Html.Attributes as A
 import Bonsai.Html.Events as E
-import Bonsai.Types (Cmd(..), f2cmd)
+import Bonsai.Types (Cmd(..))
 import Data.Maybe (Maybe(..))
 import Demo.Common as Common
 
@@ -34,8 +34,9 @@ demoSelect :: FormModel -> FormDefT
 demoSelect model =
   customControl "select" "Select" $
     H.select
-      H.! E.on "change" (f2cmd Cmd <<< targetSelectedOptions "date_select") $ do
-      -- non-multiple options really need a first option with empty value
+      H.! A.required true
+      H.! E.on "change" (map Cmd <<< targetSelectedOptions "date_select") $ do
+      -- required, non-multiple options really need a first option with empty value
       -- the so called "placeholder label option"
       -- H.! A.multiple true
       H.option H.! A.value "" $ H.text "Select one ..."

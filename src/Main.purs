@@ -2,7 +2,7 @@ module Main where
 
 import Prelude
 
-import Bonsai (BONSAI, ElementId(ElementId), UpdateResult, debugProgram, mapResult, plainResult, pureCommand, window)
+import Bonsai (BONSAI, Cmd, ElementId(ElementId), debugProgram, plainResult, pureCommand, window)
 import Bonsai.Forms (FormMsg)
 import Bonsai.Html (Property, VNode, MarkupT, a, button, div_, hr, li, nav, onWithOptions, render, text, ul, vnode, (!), (#!))
 import Bonsai.Html.Attributes (classList, cls, href, style)
@@ -10,11 +10,12 @@ import Bonsai.Html.Events (onClick, preventDefaultStopPropagation)
 import Bonsai.VirtualDom as VD
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Exception (EXCEPTION)
+import Data.Bifunctor (bimap)
 import Data.Tuple (Tuple(..))
 import Demo.Checkbox as Checkbox
 import Demo.Common as Common
-import Demo.MiscInput as MiscInput
 import Demo.ManualForm as ManualForm
+import Demo.MiscInput as MiscInput
 import Demo.NumberInput as NumberInput
 import Demo.Radio as Radio
 import Demo.TextInput as TextInput
@@ -51,29 +52,29 @@ data MasterMsg
   | CheckboxMsg FormMsg
   | RadioMsg FormMsg
 
-update :: forall eff. MasterModel -> MasterMsg -> UpdateResult eff MasterModel MasterMsg
-update model (SetCurrent demo) =
+update :: forall eff. MasterMsg -> MasterModel -> Tuple (Cmd eff MasterMsg) MasterModel
+update (SetCurrent demo) model =
   plainResult $ model { active = demo }
-update model EmptyModel =
+update EmptyModel model =
   plainResult emptyModel
-update model (ManualFormMsg msg) =
-  mapResult ( model { simpleFormModel = _ } ) ManualFormMsg
-    (ManualForm.update model.simpleFormModel msg)
-update model (TextInputMsg msg) =
-  mapResult ( model { textInputModel = _ } ) TextInputMsg
-    (Common.update model.textInputModel msg)
-update model (NumberInputMsg msg) =
-  mapResult ( model { numberInputModel = _ } ) NumberInputMsg
-    (Common.update model.numberInputModel msg)
-update model (MiscInputMsg msg) =
-  mapResult ( model { miscInputModel = _ } ) MiscInputMsg
-    (Common.update model.miscInputModel msg)
-update model (CheckboxMsg msg) =
-  mapResult ( model { checkboxModel = _ } ) CheckboxMsg
-    (Common.update model.checkboxModel msg)
-update model (RadioMsg msg) =
-  mapResult ( model { radioModel = _ } ) RadioMsg
-    (Common.update model.radioModel msg)
+update (ManualFormMsg msg) model =
+  bimap (map ManualFormMsg) ( model { simpleFormModel = _ } )
+    (ManualForm.update msg model.simpleFormModel)
+update (TextInputMsg msg) model =
+  bimap (map TextInputMsg) ( model { textInputModel = _ } )
+    (Common.update msg model.textInputModel)
+update (NumberInputMsg msg) model =
+  bimap (map NumberInputMsg) ( model { numberInputModel = _ } )
+    (Common.update msg model.numberInputModel)
+update (MiscInputMsg msg) model =
+  bimap (map MiscInputMsg) ( model { miscInputModel = _ } )
+    (Common.update msg model.miscInputModel)
+update (CheckboxMsg msg) model =
+  bimap (map CheckboxMsg) ( model { checkboxModel = _ } )
+    (Common.update msg model.checkboxModel)
+update (RadioMsg msg) model =
+  bimap (map RadioMsg) ( model { radioModel = _ } )
+    (Common.update msg model.radioModel)
 
 view :: MasterModel -> VNode MasterMsg
 view model =
@@ -135,7 +136,7 @@ viewContent gridKlass model =
 
 onClickPreventDefault :: forall msg. msg -> Property msg
 onClickPreventDefault msg =
-  onWithOptions "click" preventDefaultStopPropagation (const $ pure $ pureCommand msg)
+  onWithOptions preventDefaultStopPropagation "click" (const $ pure $ pureCommand msg)
 
 emptyModel :: MasterModel
 emptyModel =

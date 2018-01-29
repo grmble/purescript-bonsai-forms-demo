@@ -3,10 +3,11 @@ where
 
 import Prelude
 
-import Bonsai (UpdateResult, mapResult, plainResult)
+import Bonsai (Cmd, plainResult)
 import Bonsai.Forms.Model (FormModel, FormMsg(..), emptyFormModel, updateForm)
 import Bonsai.Html as H
 import Bonsai.VirtualDom (VNode)
+import Data.Bifunctor (bimap)
 import Data.Foldable (traverse_)
 import Data.List (List)
 import Data.List.NonEmpty as NEL
@@ -25,16 +26,16 @@ emptyModel =
   , formModel: emptyFormModel
   }
 
-update :: forall eff. Model -> FormMsg -> UpdateResult eff Model FormMsg
-update model (FormOK) =
+update :: forall eff. FormMsg -> Model -> Tuple (Cmd eff FormMsg) Model
+update (FormOK) model =
   plainResult $ model { button = Just "OK" }
-update model (FormCancel) =
+update (FormCancel) model =
   plainResult $ model { button = Just "Cancel" }
-update model msg =
-  mapResult
-    (\x -> model { formModel = x })
+update msg model =
+  bimap
     id
-    (updateForm model.formModel msg)
+    (\x -> model { formModel = x })
+    (updateForm msg model.formModel)
 
 view :: Model -> VNode FormMsg
 view model =

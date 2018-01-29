@@ -3,13 +3,12 @@ where
 
 import Prelude
 
-import Bonsai (UpdateResult, plainResult, pureCommand)
+import Bonsai (Cmd, plainResult, pureCommand)
 import Bonsai.EventDecoder (targetValuesEvent)
 import Bonsai.Html (Property, button, div_, fieldset, form, hr, input, label, legend, onWithOptions, render, span, text, (!))
 import Bonsai.Html.Attributes (checked, cls, for, id_, name, pattern, placeholder, required, typ, value)
 import Bonsai.Html.Attributes as A
 import Bonsai.Html.Events (preventDefaultStopPropagation)
-import Bonsai.Types (f2cmd)
 import Bonsai.VirtualDom (VNode)
 import Control.Alt ((<|>))
 import Data.Foreign.Class (class Decode, class Encode)
@@ -21,6 +20,7 @@ import Data.Int (fromString)
 import Data.List.NonEmpty as NEL
 import Data.Map (Map, lookup)
 import Data.Maybe (Maybe(..))
+import Data.Tuple (Tuple)
 import Debug.Trace (traceAny)
 
 newtype Data =
@@ -51,8 +51,8 @@ emptyModel :: Model
 emptyModel =
   Nothing
 
-update :: forall eff. Model -> Msg -> UpdateResult eff Model Msg
-update model msg =
+update :: forall eff. Msg -> Model -> Tuple (Cmd eff Msg) Model
+update msg model =
   plainResult
     case msg of
       Cancel ->
@@ -86,8 +86,8 @@ extractOK m = traceAny (show m) \_ ->
 
 onSubmit :: forall msg. (Map String (NEL.NonEmptyList String) -> msg) -> Property msg
 onSubmit cmdFn =
-   onWithOptions "submit" preventDefaultStopPropagation
-    (f2cmd (pureCommand <<< cmdFn) <<< targetValuesEvent)
+  onWithOptions preventDefaultStopPropagation "submit"
+    (map (pureCommand <<< cmdFn) <<< targetValuesEvent)
 
 view :: Model -> VNode Msg
 view model =

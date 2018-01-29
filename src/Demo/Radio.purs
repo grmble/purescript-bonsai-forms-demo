@@ -15,7 +15,7 @@ import Demo.Common as Common
 emptyModel :: Common.Model
 emptyModel =
   { button: Nothing
-  , formModel: insert "radio_sex" "m" $ emptyFormModel
+  , formModel: insert "radio_sex" "m" emptyFormModel
   }
 
 view :: Common.Model -> H.VNode FormMsg

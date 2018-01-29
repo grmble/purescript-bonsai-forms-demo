@@ -5,7 +5,7 @@ import Prelude
 
 import Bonsai.Forms (FormModel, colorInput, customControl, dateInput, datetimeLocalInput, form, telInput, urlInput, withLegend, withMessage, (!))
 import Bonsai.Forms.Internal (FormDefT)
-import Bonsai.Forms.Model (FormMsg, lookupChecked, targetSelectedOptions)
+import Bonsai.Forms.Model (FormMsg, emptyFormModel, insert, lookupChecked, targetSelectedOptions)
 import Bonsai.Forms.PureCss (alignedForm)
 import Bonsai.Html as H
 import Bonsai.Html.Attributes as A
@@ -13,6 +13,12 @@ import Bonsai.Html.Events as E
 import Bonsai.Types (Cmd(..))
 import Data.Maybe (Maybe(..))
 import Demo.Common as Common
+
+emptyModel :: Common.Model
+emptyModel =
+  { button: Nothing
+  , formModel: insert "date_select" "opt1" emptyFormModel
+  }
 
 view :: Common.Model -> H.VNode FormMsg
 view model =
@@ -34,12 +40,13 @@ demoSelect :: FormModel -> FormDefT
 demoSelect model =
   customControl "select" "Select" $
     H.select
-      H.! A.required true
+      -- H.! A.required true
       H.! E.on "change" (map Cmd <<< targetSelectedOptions "date_select") $ do
-      -- required, non-multiple options really need a first option with empty value
-      -- the so called "placeholder label option"
+      -- option with empty value is so called "placeholder label option"
+      -- H.option H.! A.value "" $ H.text "Select one ..."
+      -- but works best WITHOUT "placeholder label option"
+      -- model has to default one value from the options though, like radio
       -- H.! A.multiple true
-      H.option H.! A.value "" $ H.text "Select one ..."
       H.option H.! A.value "opt1"
         H.! A.selected (lookupChecked "date_select" "opt1" model)
         $ H.text "Option 1"

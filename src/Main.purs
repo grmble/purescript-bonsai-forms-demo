@@ -2,11 +2,11 @@ module Main where
 
 import Prelude
 
-import Bonsai (BONSAI, Cmd, ElementId(ElementId), debugProgram, plainResult, pureCommand, window)
+import Bonsai (BONSAI, Cmd, ElementId(ElementId), debugProgram, noDebug, plainResult, window)
 import Bonsai.Forms (FormMsg)
-import Bonsai.Html (Property, VNode, MarkupT, a, button, div_, hr, li, nav, onWithOptions, render, text, ul, vnode, (!), (#!))
+import Bonsai.Html (MarkupT, VNode, a, button, div_, hr, li, nav, render, text, ul, vnode, (!), (#!))
 import Bonsai.Html.Attributes (classList, cls, href, style)
-import Bonsai.Html.Events (onClick, preventDefaultStopPropagation)
+import Bonsai.Html.Events (onClick, onClickPreventDefault)
 import Bonsai.VirtualDom as VD
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Exception (EXCEPTION)
@@ -134,17 +134,13 @@ viewContent gridKlass model =
           vnode (map RadioMsg $ Radio.view model.radioModel)
 
 
-onClickPreventDefault :: forall msg. msg -> Property msg
-onClickPreventDefault msg =
-  onWithOptions preventDefaultStopPropagation "click" (const $ pure $ pureCommand msg)
-
 emptyModel :: MasterModel
 emptyModel =
   { active: TextInputDemo
   , simpleFormModel: ManualForm.emptyModel
   , textInputModel: Common.emptyModel
   , numberInputModel: Common.emptyModel
-  , miscInputModel: Common.emptyModel
+  , miscInputModel: MiscInput.emptyModel
   , checkboxModel: Common.emptyModel
   , radioModel: Radio.emptyModel
   }
@@ -152,5 +148,5 @@ emptyModel =
 main :: Eff (bonsai::BONSAI, exception::EXCEPTION) Unit
 main =
   ( window >>=
-    debugProgram (ElementId "main") update view emptyModel true true) *>
+    debugProgram (ElementId "main") update view emptyModel (noDebug { timing = true })) *>
   pure unit

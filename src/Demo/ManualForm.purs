@@ -4,7 +4,7 @@ where
 import Prelude
 
 import Bonsai (Cmd, plainResult, pureCommand)
-import Bonsai.EventDecoder (targetValuesEvent)
+import Bonsai.EventHandlers (targetValues)
 import Bonsai.Html (Property, button, div_, fieldset, form, hr, input, label, legend, onWithOptions, render, span, text, (!))
 import Bonsai.Html.Attributes (checked, cls, for, id_, name, pattern, placeholder, required, typ, value)
 import Bonsai.Html.Attributes as A
@@ -87,7 +87,7 @@ extractOK m = traceAny (show m) \_ ->
 onSubmit :: forall msg. (Map String (NEL.NonEmptyList String) -> msg) -> Property msg
 onSubmit cmdFn =
   onWithOptions preventDefaultStopPropagation "submit"
-    (map (pureCommand <<< cmdFn) <<< targetValuesEvent)
+    (map (pureCommand <<< cmdFn) <<< targetValues)
 
 view :: Model -> VNode Msg
 view model =

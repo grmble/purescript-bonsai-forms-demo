@@ -3,7 +3,7 @@ where
 
 import Prelude
 
-import Bonsai (Cmd, plainResult)
+import Bonsai (Cmd, emptyCommand)
 import Bonsai.Forms.Model (FormModel, FormMsg(..), emptyFormModel, updateForm)
 import Bonsai.Html as H
 import Bonsai.VirtualDom (VNode)
@@ -28,9 +28,9 @@ emptyModel =
 
 update :: forall eff. FormMsg -> Model -> Tuple (Cmd eff FormMsg) Model
 update (FormOK) model =
-  plainResult $ model { button = Just "OK" }
+  Tuple emptyCommand $ model { button = Just "OK" }
 update (FormCancel) model =
-  plainResult $ model { button = Just "Cancel" }
+  Tuple emptyCommand $ model { button = Just "Cancel" }
 update msg model =
   bimap
     id

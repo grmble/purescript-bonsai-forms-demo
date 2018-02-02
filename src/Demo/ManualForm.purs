@@ -3,7 +3,7 @@ where
 
 import Prelude
 
-import Bonsai (Cmd, plainResult, pureCommand)
+import Bonsai (Cmd, emptyCommand, pureCommand)
 import Bonsai.EventHandlers (targetValues)
 import Bonsai.Html (Property, button, div_, fieldset, form, hr, input, label, legend, onWithOptions, render, span, text, (!))
 import Bonsai.Html.Attributes (checked, cls, for, id_, name, pattern, placeholder, required, typ, value)
@@ -20,7 +20,7 @@ import Data.Int (fromString)
 import Data.List.NonEmpty as NEL
 import Data.Map (Map, lookup)
 import Data.Maybe (Maybe(..))
-import Data.Tuple (Tuple)
+import Data.Tuple (Tuple(..))
 import Debug.Trace (traceAny)
 
 newtype Data =
@@ -53,7 +53,7 @@ emptyModel =
 
 update :: forall eff. Msg -> Model -> Tuple (Cmd eff Msg) Model
 update msg model =
-  plainResult
+  Tuple emptyCommand
     case msg of
       Cancel ->
         emptyModel

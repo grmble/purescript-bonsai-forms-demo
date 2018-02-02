@@ -2,7 +2,7 @@ module Main where
 
 import Prelude
 
-import Bonsai (BONSAI, Cmd, ElementId(ElementId), debugProgram, noDebug, plainResult, window)
+import Bonsai (BONSAI, Cmd, ElementId(ElementId), debugProgram, emptyCommand, noDebug, window)
 import Bonsai.Forms (FormMsg)
 import Bonsai.Html (MarkupT, VNode, a, button, div_, hr, li, nav, render, text, ul, vnode, (!), (#!))
 import Bonsai.Html.Attributes (classList, cls, href, style)
@@ -54,9 +54,9 @@ data MasterMsg
 
 update :: forall eff. MasterMsg -> MasterModel -> Tuple (Cmd eff MasterMsg) MasterModel
 update (SetCurrent demo) model =
-  plainResult $ model { active = demo }
+  Tuple emptyCommand $ model { active = demo }
 update EmptyModel model =
-  plainResult emptyModel
+  Tuple emptyCommand emptyModel
 update (ManualFormMsg msg) model =
   bimap (map ManualFormMsg) ( model { simpleFormModel = _ } )
     (ManualForm.update msg model.simpleFormModel)

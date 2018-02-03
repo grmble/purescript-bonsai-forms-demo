@@ -147,6 +147,6 @@ emptyModel =
 
 main :: Eff (bonsai::BONSAI, exception::EXCEPTION) Unit
 main =
-  ( window >>=
+  ( window #
     debugProgram (ElementId "main") update view emptyModel (noDebug { timing = true })) *>
   pure unit

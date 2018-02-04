@@ -3,6 +3,8 @@ module Main where
 import Prelude
 
 import Bonsai (BONSAI, Cmd, ElementId(ElementId), debugProgram, emptyCommand, noDebug, window)
+import Bonsai.Core.DOM (locationHashCmd)
+import Bonsai.DOM (DOM, document, effF, locationHash)
 import Bonsai.Forms (FormMsg)
 import Bonsai.Html (MarkupT, VNode, a, button, div_, hr, li, nav, render, text, ul, vnode, (!), (#!))
 import Bonsai.Html.Attributes (classList, cls, href, style)
@@ -52,9 +54,15 @@ data MasterMsg
   | CheckboxMsg FormMsg
   | RadioMsg FormMsg
 
-update :: forall eff. MasterMsg -> MasterModel -> Tuple (Cmd eff MasterMsg) MasterModel
+update
+  :: forall eff
+  .  MasterMsg
+  -> MasterModel
+  -> Tuple (Cmd (dom::DOM|eff) MasterMsg) MasterModel
 update (SetCurrent demo) model =
-  Tuple emptyCommand $ model { active = demo }
+  Tuple
+    (locationHashCmd $ demoHash demo)
+    (model { active = demo })
 update EmptyModel model =
   Tuple emptyCommand emptyModel
 update (ManualFormMsg msg) model =
@@ -145,8 +153,39 @@ emptyModel =
   , radioModel: Radio.emptyModel
   }
 
-main :: Eff (bonsai::BONSAI, exception::EXCEPTION) Unit
-main =
-  ( window #
-    debugProgram (ElementId "main") update view emptyModel (noDebug { timing = true })) *>
+
+demoHash :: Demo -> String
+demoHash demo =
+  case demo of
+    TextInputDemo -> "#text"
+    NumberInputDemo -> "#number"
+    MiscInputDemo -> "#misc"
+    CheckboxDemo -> "#checkbox"
+    RadioDemo -> "#radio"
+    ManualFormDemo -> "#manual"
+
+hashDemo :: String -> Demo
+hashDemo hash =
+  case hash of
+    "#text" -> TextInputDemo
+    "#number" -> NumberInputDemo
+    "#misc" -> MiscInputDemo
+    "#checkbox" -> CheckboxDemo
+    "#radio" -> RadioDemo
+    "#manual" -> ManualFormDemo
+
+    -- default to textInputDemo
+    _ -> TextInputDemo
+
+
+main :: Eff (bonsai::BONSAI, dom::DOM, exception::EXCEPTION) Unit
+main = do
+  hash <- effF $ window >>= document >>= locationHash
+  let demo = hashDemo hash
+  let model = emptyModel { active = demo }
+  _ <- dbgProgram (ElementId "main") update view model window
   pure unit
+
+  where
+    dbgProgram =
+      debugProgram (noDebug { timing = true })

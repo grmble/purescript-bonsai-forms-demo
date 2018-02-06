@@ -15,18 +15,17 @@ import Demo.Common as Common
 emptyModel :: Common.Model
 emptyModel =
   { button: Nothing
+  , source: Nothing
   , formModel: insert "radio_sex" "m" emptyFormModel
   }
 
-view :: Common.Model -> H.VNode FormMsg
+view :: Common.Model -> H.MarkupT FormMsg
 view model =
-  H.render $ do
-    alignedForm Nothing model.formModel $
-      form "radio" `withLegend` "Radio ..." $ do
-        textInput "name" "Name" `withMessage` "Required" ! A.required true
-        radioInput "sex"
-          [ Tuple "m" "Male"
-          , Tuple "f" "Female"
-          , Tuple "x" "Yes please"
-          ]
-    H.vnode $ Common.view model
+  alignedForm Nothing model.formModel $
+    form "radio" `withLegend` "Radio ..." $ do
+      textInput "name" "Name" `withMessage` "Required" ! A.required true
+      radioInput "sex"
+        [ Tuple "m" "Male"
+        , Tuple "f" "Female"
+        , Tuple "x" "Yes please"
+        ]

@@ -3,10 +3,10 @@ where
 
 import Prelude
 
-import Bonsai (Cmd, emptyCommand)
+import Bonsai (Cmd)
 import Bonsai.Forms.Model (FormModel, FormMsg(..), emptyFormModel, updateForm)
-import Bonsai.Html as H
-import Bonsai.VirtualDom (VNode)
+import Bonsai.Html (MarkupT, h3, hr, li, p, text, ul)
+import Control.Plus (empty)
 import Data.Bifunctor (bimap)
 import Data.Foldable (traverse_)
 import Data.List (List)
@@ -18,38 +18,46 @@ import Data.Tuple (Tuple(..))
 type Model =
   { button :: Maybe String
   , formModel :: FormModel
+  , source :: Maybe String
   }
 
 emptyModel :: Model
 emptyModel =
   { button: Nothing
+  , source: Nothing
   , formModel: emptyFormModel
   }
 
 update :: forall eff. FormMsg -> Model -> Tuple (Cmd eff FormMsg) Model
 update (FormOK) model =
-  Tuple emptyCommand $ model { button = Just "OK" }
+  Tuple empty $ model { button = Just "OK" }
 update (FormCancel) model =
-  Tuple emptyCommand $ model { button = Just "Cancel" }
+  Tuple empty $ model { button = Just "Cancel" }
 update msg model =
   bimap
     id
     (\x -> model { formModel = x })
     (updateForm msg model.formModel)
 
-view :: Model -> VNode FormMsg
-view model =
-  H.render $ do
-    H.hr
-    H.h3 $ H.text "Last Button"
-    H.p $ H.text (show model.button)
 
-    let fmodel = model.formModel
-    H.h3 $ H.text "Model"
-    H.ul $ do
-      traverse_ (\(Tuple k v) ->
-          H.li $ do
-            H.text k
-            H.text ": "
-            H.text $ NEL.intercalate ", " v)
-        (toAscUnfoldable fmodel :: List (Tuple String (NEL.NonEmptyList String)))
+viewModel :: Model -> MarkupT FormMsg
+viewModel model = do
+  hr
+  h3 $ text "Last Button"
+  p $ text (show model.button)
+
+  let fmodel = model.formModel
+  h3 $ text "Model"
+  ul $ do
+    traverse_ (\(Tuple k v) ->
+        li $ do
+          text k
+          text ": "
+          text $ NEL.intercalate ", " v)
+      (toAscUnfoldable fmodel :: List (Tuple String (NEL.NonEmptyList String)))
+
+
+viewDemo :: (Model -> MarkupT FormMsg) -> Model -> MarkupT FormMsg
+viewDemo demoFn demoModel = do
+  demoFn demoModel
+  viewModel demoModel

@@ -17,22 +17,20 @@ import Demo.Common as Common
 emptyModel :: Common.Model
 emptyModel =
   { button: Nothing
+  , source: Nothing
   , formModel: insert "date_select" "opt1" emptyFormModel
   }
 
-view :: Common.Model -> H.VNode FormMsg
+view :: Common.Model -> H.MarkupT FormMsg
 view model =
-  H.render $ do
-    alignedForm Nothing model.formModel $
-      form "date" `withLegend` "Date and others that degrade to text  ..." $ do
-        dateInput "required" "Required" `withMessage` "Required" ! A.required true
-        datetimeLocalInput "datetime" "Date/Time"
-        colorInput "color" "Color"
-        telInput "tel" "Tel"
-        urlInput "url" "URL"
-        demoSelect model.formModel
-
-    H.vnode $ Common.view model
+  alignedForm Nothing model.formModel $
+    form "date" `withLegend` "Date and others that degrade to text  ..." $ do
+      dateInput "required" "Required" `withMessage` "Required" ! A.required true
+      datetimeLocalInput "datetime" "Date/Time"
+      colorInput "color" "Color"
+      telInput "tel" "Tel"
+      urlInput "url" "URL"
+      demoSelect model.formModel
 
 
 -- demo of html select using customControl

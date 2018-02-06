@@ -2,25 +2,27 @@ module Main where
 
 import Prelude
 
-import Bonsai (BONSAI, Cmd, ElementId(ElementId), debugProgram, emptyCommand, noDebug, window)
+import Bonsai (BONSAI, Cmd, ElementId(ElementId), debugProgram, noDebug, simpleTask, window)
 import Bonsai.Core.DOM (locationHashCmd)
 import Bonsai.DOM (DOM, document, effF, locationHash)
 import Bonsai.Forms (FormMsg)
-import Bonsai.Html (MarkupT, VNode, a, button, div_, hr, li, nav, render, text, ul, vnode, (!), (#!))
-import Bonsai.Html.Attributes (classList, cls, href, style)
-import Bonsai.Html.Events (onClick, onClickPreventDefault)
+import Bonsai.Html (Markup, MarkupT, VNode, a, button, div_, hr, input, label, li, nav, pre_, render, text, ul, vnode, (!), (#!))
+import Bonsai.Html.Attributes (checked, classList, cls, defaultValue, href, id_, style, typ)
+import Bonsai.Html.Events (onCheckedChange, onClick, onClickPreventDefault)
 import Bonsai.VirtualDom as VD
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Exception (EXCEPTION)
+import Control.Plus (empty)
 import Data.Bifunctor (bimap)
+import Data.Maybe (Maybe(..), fromMaybe, isNothing)
 import Data.Tuple (Tuple(..))
 import Demo.Checkbox as Checkbox
 import Demo.Common as Common
-import Demo.ManualForm as ManualForm
 import Demo.MiscInput as MiscInput
 import Demo.NumberInput as NumberInput
 import Demo.Radio as Radio
 import Demo.TextInput as TextInput
+import Network.HTTP.Affjax (AJAX, get)
 
 data Demo
   = TextInputDemo
@@ -28,15 +30,13 @@ data Demo
   | MiscInputDemo
   | CheckboxDemo
   | RadioDemo
-  -- the following ones are manually coded for comparison
-  | ManualFormDemo
 
 
 derive instance eqExample :: Eq Demo
 
 type MasterModel =
   { active :: Demo
-  , simpleFormModel :: ManualForm.Model
+  , showSource :: Boolean
   , textInputModel :: Common.Model
   , numberInputModel :: Common.Model
   , miscInputModel :: Common.Model
@@ -44,10 +44,12 @@ type MasterModel =
   , radioModel :: Common.Model
   }
 
+
 data MasterMsg
   = SetCurrent Demo
+  | SetSource Demo String
   | EmptyModel
-  | ManualFormMsg ManualForm.Msg
+  | ShowSource Boolean
   | TextInputMsg FormMsg
   | NumberInputMsg FormMsg
   | MiscInputMsg FormMsg
@@ -58,43 +60,101 @@ update
   :: forall eff
   .  MasterMsg
   -> MasterModel
-  -> Tuple (Cmd (dom::DOM|eff) MasterMsg) MasterModel
+  -> Tuple (Cmd (ajax::AJAX,dom::DOM|eff) MasterMsg) MasterModel
 update (SetCurrent demo) model =
-  Tuple
-    (locationHashCmd $ demoHash demo)
-    (model { active = demo })
+  let model' = model { active = demo }
+  in  Tuple
+        (loadCurrentSourceTask model' <> (locationHashCmd $ demoHash demo))
+        model'
+
+update (SetSource demo str) model =
+  let
+    go :: Common.Model -> (Common.Model -> MasterModel) -> MasterModel
+    go m setM = setM (m { source = Just str })
+  in
+    Tuple
+      empty
+      case demo of
+        TextInputDemo ->
+          go model.textInputModel (model { textInputModel = _ })
+        NumberInputDemo ->
+          go model.numberInputModel (model { numberInputModel = _ })
+        MiscInputDemo ->
+          go model.miscInputModel (model { miscInputModel = _ })
+        CheckboxDemo ->
+          go model.checkboxModel (model { checkboxModel = _ })
+        RadioDemo ->
+          go model.radioModel (model { radioModel = _ })
+
+update (ShowSource b) model =
+  let model' = model { showSource = b }
+      cmd = loadCurrentSourceTask model'
+  in  Tuple cmd model'
+
 update EmptyModel model =
-  Tuple emptyCommand emptyModel
-update (ManualFormMsg msg) model =
-  bimap (map ManualFormMsg) ( model { simpleFormModel = _ } )
-    (ManualForm.update msg model.simpleFormModel)
+  Tuple empty
+    (emptyModel
+      { showSource = model.showSource
+      , active = model.active })
+
 update (TextInputMsg msg) model =
   bimap (map TextInputMsg) ( model { textInputModel = _ } )
     (Common.update msg model.textInputModel)
+
 update (NumberInputMsg msg) model =
   bimap (map NumberInputMsg) ( model { numberInputModel = _ } )
     (Common.update msg model.numberInputModel)
+
 update (MiscInputMsg msg) model =
   bimap (map MiscInputMsg) ( model { miscInputModel = _ } )
     (Common.update msg model.miscInputModel)
+
 update (CheckboxMsg msg) model =
   bimap (map CheckboxMsg) ( model { checkboxModel = _ } )
     (Common.update msg model.checkboxModel)
+
 update (RadioMsg msg) model =
   bimap (map RadioMsg) ( model { radioModel = _ } )
     (Common.update msg model.radioModel)
 
+loadCurrentSourceTask :: forall eff. MasterModel -> Cmd (ajax::AJAX|eff) MasterMsg
+loadCurrentSourceTask model =
+  if model.showSource && isNothing formModel.source
+    then go formModel
+    else empty
+  where
+    formModel = unwrapModel model
+    go m =
+      case m.source of
+        Just _ ->
+          empty
+        Nothing ->
+          simpleTask $ do
+            res <- get (sourceFilename model.active)
+            pure $ SetSource model.active res.response
+
 view :: MasterModel -> VNode MasterMsg
 view model =
   render $
-    div_ ! cls "pure-grid" $ do
-      vnode (VD.lazy (viewMenu "pure-u-1-6") model.active)
-      viewContent "pure-u-5-6" model
+    div_ ! id_ "bonsai-main" ! cls "pure-g" $
+      if model.showSource
+        then do
+          menuAndContent "pure-u-1 pure-u-sm-1-4 pure-u-md-1-12" "pure-u-1 pure-u-sm-1-4 pure-u-md-5-12"
+          div_ ! id_ "source"
+            ! cls "pure-u-1 pure-u-sm-1-2 pure-u-md-6-12" $
+            pre_ $ text $ fromMaybe "Loading ..." (unwrapModel model).source
+        else menuAndContent "pure-u-1 pure-u-sm-1-4 pure-u-md-1-6" "pure-u-1 pure-u-sm-3-4 pure-u-md-5-6"
+  where
+    menuAndContent mklass cklass = do
+      vnode (VD.lazy (render <<< viewMenu mklass) model)
+      viewContent cklass model
 
-viewMenu :: String -> Demo -> VNode MasterMsg
-viewMenu gridKlass active =
-  render $ do
-    div_ ! cls gridKlass $ do
+
+
+viewMenu :: String -> MasterModel -> MarkupT MasterMsg
+viewMenu gridKlass model = do
+  div_ ! cls gridKlass $
+    div_ ! cls "l-box" $ do
       nav ! cls "pure-menu" $
         ul ! cls "pure-menu-list" $ do
           item TextInputDemo "Text Input"
@@ -102,12 +162,19 @@ viewMenu gridKlass active =
           item CheckboxDemo "Checkbox"
           item RadioDemo "Radio"
           item MiscInputDemo "Misc Input"
-          item ManualFormDemo "Manual Form"
       hr
-      button
-        ! cls "pure-button"
-        ! onClick EmptyModel
-        $ text "Empty Models"
+      div_ ! cls "pure-form pure-form-stacked" $ do
+        label $ do
+          input
+            ! typ "checkbox"
+            ! defaultValue "y"
+            ! checked model.showSource
+            ! onCheckedChange ShowSource
+          text " Show Source"
+        button
+          ! cls "pure-button"
+          ! onClick EmptyModel
+          $ text "Empty Models"
 
 
   where
@@ -120,32 +187,33 @@ viewMenu gridKlass active =
     menuItemClasses ex =
       classList
         [ Tuple "pure-menu-item" true
-        , Tuple "pure-menu-selected" (ex == active) ]
+        , Tuple "pure-menu-selected" (ex == model.active) ]
 
 
-viewContent :: String -> MasterModel -> MarkupT MasterMsg
+viewContent :: String -> MasterModel -> Markup MasterMsg Unit
 viewContent gridKlass model =
   div_ ! cls gridKlass $
-    div_ #! style "margin-left" "2em" $
+    div_ ! cls "l-box" #! style "margin-left" "2em" $
       case model.active of
-        ManualFormDemo ->
-          vnode (map ManualFormMsg $ ManualForm.view model.simpleFormModel)
         TextInputDemo ->
-          vnode (map TextInputMsg $ TextInput.view model.textInputModel)
+          mapMarkup TextInputMsg $ Common.viewDemo TextInput.view model.textInputModel
         NumberInputDemo ->
-          vnode (map NumberInputMsg $ NumberInput.view model.numberInputModel)
+          mapMarkup NumberInputMsg $ Common.viewDemo NumberInput.view model.numberInputModel
         MiscInputDemo ->
-          vnode (map MiscInputMsg $ MiscInput.view model.miscInputModel)
+          mapMarkup MiscInputMsg $ Common.viewDemo MiscInput.view model.miscInputModel
         CheckboxDemo ->
-          vnode (map CheckboxMsg $ Checkbox.view model.checkboxModel)
+          mapMarkup CheckboxMsg $ Common.viewDemo Checkbox.view model.checkboxModel
         RadioDemo ->
-          vnode (map RadioMsg $ Radio.view model.radioModel)
+          mapMarkup RadioMsg $ Common.viewDemo Radio.view model.radioModel
 
+  where
+    mapMarkup fn =
+      vnode <<< map fn <<< render
 
 emptyModel :: MasterModel
 emptyModel =
   { active: TextInputDemo
-  , simpleFormModel: ManualForm.emptyModel
+  , showSource: false
   , textInputModel: Common.emptyModel
   , numberInputModel: Common.emptyModel
   , miscInputModel: MiscInput.emptyModel
@@ -153,6 +221,16 @@ emptyModel =
   , radioModel: Radio.emptyModel
   }
 
+sourceFilename :: Demo -> String
+sourceFilename demo =
+  "src/Demo/" <> n <> ".purs"
+  where
+    n = case demo of
+      TextInputDemo -> "TextInput"
+      NumberInputDemo -> "NumberInput"
+      CheckboxDemo -> "Checkbox"
+      RadioDemo -> "Radio"
+      MiscInputDemo -> "MiscInput"
 
 demoHash :: Demo -> String
 demoHash demo =
@@ -162,7 +240,6 @@ demoHash demo =
     MiscInputDemo -> "#misc"
     CheckboxDemo -> "#checkbox"
     RadioDemo -> "#radio"
-    ManualFormDemo -> "#manual"
 
 hashDemo :: String -> Demo
 hashDemo hash =
@@ -172,10 +249,27 @@ hashDemo hash =
     "#misc" -> MiscInputDemo
     "#checkbox" -> CheckboxDemo
     "#radio" -> RadioDemo
-    "#manual" -> ManualFormDemo
 
     -- default to textInputDemo
     _ -> TextInputDemo
+
+unwrapModel :: MasterModel -> Common.Model
+unwrapModel model =
+  case model.active of
+    TextInputDemo -> model.textInputModel
+    NumberInputDemo -> model.numberInputModel
+    MiscInputDemo -> model.miscInputModel
+    CheckboxDemo -> model.checkboxModel
+    RadioDemo -> model.radioModel
+
+wrapModel :: MasterModel -> Common.Model -> MasterModel
+wrapModel model demoModel =
+  case model.active of
+    TextInputDemo -> model { textInputModel = demoModel }
+    NumberInputDemo -> model { numberInputModel = demoModel }
+    MiscInputDemo -> model { miscInputModel = demoModel }
+    CheckboxDemo -> model { checkboxModel = demoModel }
+    RadioDemo -> model { radioModel = demoModel }
 
 
 main :: Eff (bonsai::BONSAI, dom::DOM, exception::EXCEPTION) Unit
@@ -188,4 +282,7 @@ main = do
 
   where
     dbgProgram =
-      debugProgram (noDebug { timing = true })
+      debugProgram (noDebug
+        { timing = true
+        -- , events = true 
+        })

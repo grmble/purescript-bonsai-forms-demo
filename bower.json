@@ -9,10 +9,10 @@
   "dependencies": {
     "purescript-prelude": "^3.1.1",
     "purescript-console": "^3.0.0",
-    "purescript-bonsai": "^0.6.0",
-    "purescript-bonsai-forms": "^0.1.0",
     "purescript-debug": "^3.0.0",
-    "purescript-affjax": "^5.0.0"
+    "purescript-affjax": "^5.0.0",
+    "purescript-bonsai": "grmble/purescript-bonsai#master",
+    "purescript-bonsai-forms": "grmble/purescript-bonsai-forms#master"
   },
   "devDependencies": {
     "purescript-psci-support": "^3.0.0"

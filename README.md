@@ -1,3 +1,6 @@
 # Purescript Bonsai Forms Demo
 
-A demo application for https://github.com/grmble/purescript-bonsai-forms
+A demo application for https://github.com/grmble/purescript-bonsai
+
+This version is for the v1.0-beta version, it will not work with
+the current release on pursuit.

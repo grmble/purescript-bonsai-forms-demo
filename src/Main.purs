@@ -6,9 +6,9 @@ import Bonsai (BONSAI, Cmd, ElementId(ElementId), debugProgram, noDebug, simpleT
 import Bonsai.Core.DOM (locationHashCmd)
 import Bonsai.DOM (DOM, document, effF, locationHash)
 import Bonsai.Forms (FormMsg)
-import Bonsai.Html (Markup, MarkupT, VNode, a, button, div_, hr, input, label, li, nav, pre_, render, text, ul, vnode, (!), (#!))
-import Bonsai.Html.Attributes (checked, classList, cls, defaultValue, href, id_, style, typ)
-import Bonsai.Html.Events (onCheckedChange, onClick, onClickPreventDefault)
+import Bonsai.Html (Markup, MarkupT, VNode, a, div_, input, label, li, nav, pre_, render, text, ul, vnode, (!), (#!))
+import Bonsai.Html.Attributes (checked, cls, defaultValue, href, id_, style, target, typ)
+import Bonsai.Html.Events (onCheckedChange, onClickPreventDefault)
 import Bonsai.VirtualDom as VD
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Exception (EXCEPTION)
@@ -92,10 +92,8 @@ update (ShowSource b) model =
   in  Tuple cmd model'
 
 update EmptyModel model =
-  Tuple empty
-    (emptyModel
-      { showSource = model.showSource
-      , active = model.active })
+  let model' = emptyModel { showSource = model.showSource, active = model.active }
+  in  Tuple (loadCurrentSourceTask model') model'
 
 update (TextInputMsg msg) model =
   bimap (map TextInputMsg) ( model { textInputModel = _ } )
@@ -139,43 +137,44 @@ view model =
     div_ ! id_ "bonsai-main" ! cls "pure-g" $
       if model.showSource
         then do
-          menuAndContent "pure-u-1 pure-u-sm-1-4 pure-u-md-1-12" "pure-u-1 pure-u-sm-1-4 pure-u-md-5-12"
+          menuAndContent "pure-u-1 pure-u-lg-1-2"
           div_ ! id_ "source"
-            ! cls "pure-u-1 pure-u-sm-1-2 pure-u-md-6-12" $
+            ! cls "pure-u-1 pure-u-lg-1-2" $
             pre_ $ text $ fromMaybe "Loading ..." (unwrapModel model).source
-        else menuAndContent "pure-u-1 pure-u-sm-1-4 pure-u-md-1-6" "pure-u-1 pure-u-sm-3-4 pure-u-md-5-6"
+        else menuAndContent "pure-u-1"
   where
-    menuAndContent mklass cklass = do
-      vnode (VD.lazy (render <<< viewMenu mklass) model)
-      viewContent cklass model
+    menuAndContent klass = do
+      div_ ! cls klass $ do
+        vnode (VD.lazy (render <<< viewMenu) model)
+        viewContent model
 
 
 
-viewMenu :: String -> MasterModel -> MarkupT MasterMsg
-viewMenu gridKlass model = do
-  div_ ! cls gridKlass $
-    div_ ! cls "l-box" $ do
-      nav ! cls "pure-menu" $
-        ul ! cls "pure-menu-list" $ do
-          item TextInputDemo "Text Input"
-          item NumberInputDemo "Number Input"
-          item CheckboxDemo "Checkbox"
-          item RadioDemo "Radio"
-          item MiscInputDemo "Misc Input"
-      hr
-      div_ ! cls "pure-form pure-form-stacked" $ do
-        label $ do
-          input
-            ! typ "checkbox"
-            ! defaultValue "y"
-            ! checked model.showSource
-            ! onCheckedChange ShowSource
-          text " Show Source"
-        button
-          ! cls "pure-button"
-          ! onClick EmptyModel
-          $ text "Empty Models"
-
+viewMenu :: MasterModel -> MarkupT MasterMsg
+viewMenu model = do
+    nav ! cls "l-box pure-menu pure-menu-horizontal pure-menu-scrollable" $ do
+      a ! cls "pure-menu-heading pure-menu-link"
+        ! target "_blank"
+        ! href "https://github.com/grmble/purescript-bonsai-forms-demo/"
+        $ text "Forms Demo"
+      ul ! cls "pure-menu-list" $ do
+        item TextInputDemo "Text Input"
+        item NumberInputDemo "Number Input"
+        item CheckboxDemo "Checkbox"
+        item RadioDemo "Radio"
+        item MiscInputDemo "Misc Input"
+        li ! cls "pure-menu-item pure-menu-link pure-form" $ do
+          label $ do
+            input
+              ! typ "checkbox"
+              ! defaultValue "y"
+              ! checked model.showSource
+              ! onCheckedChange ShowSource
+            text " Show Source"
+        li ! cls "pure-menu-item" $ do
+          a ! cls "pure-menu-link" ! href "#"
+            ! onClickPreventDefault EmptyModel
+            $ text "Empty Model"
 
   where
     item demo str =
@@ -185,26 +184,25 @@ viewMenu gridKlass model = do
           $ text str
 
     menuItemClasses ex =
-      classList
-        [ Tuple "pure-menu-item" true
-        , Tuple "pure-menu-selected" (ex == model.active) ]
+      cls
+        if ex == model.active
+          then "pure-menu-item pure-menu-selected"
+          else "pure-menu-item"
 
-
-viewContent :: String -> MasterModel -> Markup MasterMsg Unit
-viewContent gridKlass model =
-  div_ ! cls gridKlass $
-    div_ ! cls "l-box" #! style "margin-left" "2em" $
-      case model.active of
-        TextInputDemo ->
-          mapMarkup TextInputMsg $ Common.viewDemo TextInput.view model.textInputModel
-        NumberInputDemo ->
-          mapMarkup NumberInputMsg $ Common.viewDemo NumberInput.view model.numberInputModel
-        MiscInputDemo ->
-          mapMarkup MiscInputMsg $ Common.viewDemo MiscInput.view model.miscInputModel
-        CheckboxDemo ->
-          mapMarkup CheckboxMsg $ Common.viewDemo Checkbox.view model.checkboxModel
-        RadioDemo ->
-          mapMarkup RadioMsg $ Common.viewDemo Radio.view model.radioModel
+viewContent :: MasterModel -> Markup MasterMsg Unit
+viewContent model =
+  div_ ! cls "l-box" #! style "margin-left" "2em" $
+    case model.active of
+      TextInputDemo ->
+        mapMarkup TextInputMsg $ Common.viewDemo TextInput.view model.textInputModel
+      NumberInputDemo ->
+        mapMarkup NumberInputMsg $ Common.viewDemo NumberInput.view model.numberInputModel
+      MiscInputDemo ->
+        mapMarkup MiscInputMsg $ Common.viewDemo MiscInput.view model.miscInputModel
+      CheckboxDemo ->
+        mapMarkup CheckboxMsg $ Common.viewDemo Checkbox.view model.checkboxModel
+      RadioDemo ->
+        mapMarkup RadioMsg $ Common.viewDemo Radio.view model.radioModel
 
   where
     mapMarkup fn =
@@ -284,5 +282,5 @@ main = do
     dbgProgram =
       debugProgram (noDebug
         { timing = true
-        -- , events = true 
+        -- , events = true
         })

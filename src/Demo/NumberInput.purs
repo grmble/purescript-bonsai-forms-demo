@@ -10,7 +10,7 @@ import Bonsai.Html.Attributes as A
 import Data.Maybe (Maybe(..))
 import Demo.Common as Common
 
-view :: Common.Model -> H.MarkupT FormMsg
+view :: Common.Model -> H.Markup FormMsg
 view model =
   alignedForm (Just "ShouldNotBeInModel") model.formModel $
     form "number" `withLegend` "Number fields ..." $ do

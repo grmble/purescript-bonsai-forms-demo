@@ -19,7 +19,7 @@ emptyModel =
   , formModel: insert "radio_sex" "m" emptyFormModel
   }
 
-view :: Common.Model -> H.MarkupT FormMsg
+view :: Common.Model -> H.Markup FormMsg
 view model =
   alignedForm Nothing model.formModel $
     form "radio" `withLegend` "Radio ..." $ do

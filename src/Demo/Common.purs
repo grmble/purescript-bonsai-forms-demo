@@ -5,7 +5,7 @@ import Prelude
 
 import Bonsai (Cmd)
 import Bonsai.Forms.Model (FormModel, FormMsg(..), emptyFormModel, updateForm)
-import Bonsai.Html (MarkupT, h3, hr, li, p, text, ul)
+import Bonsai.Html (Markup, h3, hr, li, p, text, ul)
 import Control.Plus (empty)
 import Data.Bifunctor (bimap)
 import Data.Foldable (traverse_)
@@ -40,7 +40,7 @@ update msg model =
     (updateForm msg model.formModel)
 
 
-viewModel :: Model -> MarkupT FormMsg
+viewModel :: Model -> Markup FormMsg
 viewModel model = do
   hr
   h3 $ text "Last Button"
@@ -57,7 +57,7 @@ viewModel model = do
       (toAscUnfoldable fmodel :: List (Tuple String (NEL.NonEmptyList String)))
 
 
-viewDemo :: (Model -> MarkupT FormMsg) -> Model -> MarkupT FormMsg
+viewDemo :: (Model -> Markup FormMsg) -> Model -> Markup FormMsg
 viewDemo demoFn demoModel = do
   demoFn demoModel
   viewModel demoModel

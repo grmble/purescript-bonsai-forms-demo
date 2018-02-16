@@ -10,7 +10,7 @@ import Bonsai.Html.Attributes as A
 import Data.Maybe (Maybe(..))
 import Demo.Common as Common
 
-view :: Common.Model -> H.MarkupT FormMsg
+view :: Common.Model -> H.Markup FormMsg
 view model =
   alignedForm Nothing model.formModel $
     form "text" `withLegend` "Text fields ..." $ do

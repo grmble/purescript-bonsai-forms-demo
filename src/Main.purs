@@ -6,7 +6,7 @@ import Bonsai (BONSAI, Cmd, ElementId(ElementId), debugProgram, noDebug, simpleT
 import Bonsai.Core.DOM (locationHashCmd)
 import Bonsai.DOM (DOM, document, effF, locationHash)
 import Bonsai.Forms (FormMsg)
-import Bonsai.Html (Markup, MarkupT, VNode, a, div_, input, label, li, nav, pre_, render, text, ul, vnode, (!), (#!))
+import Bonsai.Html (Markup, VNode, a, div_, input, label, li, nav, pre_, render, text, ul, vnode, (!), (#!))
 import Bonsai.Html.Attributes (checked, cls, defaultValue, href, id_, style, target, typ)
 import Bonsai.Html.Events (onCheckedChange, onClickPreventDefault)
 import Bonsai.VirtualDom as VD
@@ -150,7 +150,7 @@ view model =
 
 
 
-viewMenu :: MasterModel -> MarkupT MasterMsg
+viewMenu :: MasterModel -> Markup MasterMsg
 viewMenu model = do
     nav ! cls "l-box pure-menu pure-menu-horizontal pure-menu-scrollable" $ do
       a ! cls "pure-menu-heading pure-menu-link"
@@ -189,7 +189,7 @@ viewMenu model = do
           then "pure-menu-item pure-menu-selected"
           else "pure-menu-item"
 
-viewContent :: MasterModel -> Markup MasterMsg Unit
+viewContent :: MasterModel -> Markup MasterMsg
 viewContent model =
   div_ ! cls "l-box" #! style "margin-left" "2em" $
     case model.active of

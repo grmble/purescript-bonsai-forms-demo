@@ -4,7 +4,7 @@ where
 import Prelude
 
 import Bonsai.Forms (FormModel, colorInput, customControl, dateInput, datetimeLocalInput, form, telInput, urlInput, withLegend, withMessage, (!))
-import Bonsai.Forms.Internal (FormDefT)
+import Bonsai.Forms.Internal (FormDef)
 import Bonsai.Forms.Model (FormMsg, emptyFormModel, insert, lookupChecked, targetSelectedOptions)
 import Bonsai.Forms.PureCss (alignedForm)
 import Bonsai.Html as H
@@ -21,7 +21,7 @@ emptyModel =
   , formModel: insert "date_select" "opt1" emptyFormModel
   }
 
-view :: Common.Model -> H.MarkupT FormMsg
+view :: Common.Model -> H.Markup FormMsg
 view model =
   alignedForm Nothing model.formModel $
     form "date" `withLegend` "Date and others that degrade to text  ..." $ do
@@ -34,7 +34,7 @@ view model =
 
 
 -- demo of html select using customControl
-demoSelect :: FormModel -> FormDefT
+demoSelect :: FormModel -> FormDef
 demoSelect model =
   customControl "select" "Select" $
     H.select

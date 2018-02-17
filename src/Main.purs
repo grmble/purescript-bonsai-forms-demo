@@ -12,7 +12,7 @@ import Bonsai.Html.Events (onCheckedChange, onClickPreventDefault)
 import Bonsai.VirtualDom as VD
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Exception (EXCEPTION)
-import Control.Plus (empty)
+import Control.Plus (empty, (<|>))
 import Data.Bifunctor (bimap)
 import Data.Maybe (Maybe(..), fromMaybe, isNothing)
 import Data.Tuple (Tuple(..))
@@ -64,7 +64,7 @@ update
 update (SetCurrent demo) model =
   let model' = model { active = demo }
   in  Tuple
-        (loadCurrentSourceTask model' <> (locationHashCmd $ demoHash demo))
+        (loadCurrentSourceTask model' <|> (locationHashCmd $ demoHash demo))
         model'
 
 update (SetSource demo str) model =
@@ -127,7 +127,7 @@ loadCurrentSourceTask model =
         Just _ ->
           empty
         Nothing ->
-          simpleTask $ do
+          simpleTask \_ -> do
             res <- get (sourceFilename model.active)
             pure $ SetSource model.active res.response
 

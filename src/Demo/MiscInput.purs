@@ -3,15 +3,14 @@ where
 
 import Prelude
 
-import Bonsai.Forms (FormModel, colorInput, customControl, dateInput, datetimeLocalInput, form, telInput, urlInput, withLegend, withMessage, (!))
+import Bonsai.Forms (FormModel, colorInput, dateInput, datetimeLocalInput, form, simpleSelect, telInput, urlInput, withLegend, withMessage, (!))
 import Bonsai.Forms.Internal (FormDef)
-import Bonsai.Forms.Model (FormMsg, emptyFormModel, insert, lookupChecked, targetSelectedOptions)
+import Bonsai.Forms.Model (FormMsg, emptyFormModel, insert)
 import Bonsai.Forms.PureCss (alignedForm)
 import Bonsai.Html as H
 import Bonsai.Html.Attributes as A
-import Bonsai.Html.Events as E
-import Bonsai.Types (Cmd(..))
 import Data.Maybe (Maybe(..))
+import Data.Tuple (Tuple(..))
 import Demo.Common as Common
 
 emptyModel :: Common.Model
@@ -36,18 +35,5 @@ view model =
 -- demo of html select using customControl
 demoSelect :: FormModel -> FormDef
 demoSelect model =
-  customControl "select" "Select" $
-    H.select
-      -- H.! A.required true
-      H.! E.on "change" (map Cmd <<< targetSelectedOptions "date_select") $ do
-      -- option with empty value is so called "placeholder label option"
-      -- H.option H.! A.value "" $ H.text "Select one ..."
-      -- but works best WITHOUT "placeholder label option"
-      -- model has to default one value from the options though, like radio
-      -- H.! A.multiple true
-      H.option H.! A.value "opt1"
-        H.! A.selected (lookupChecked "date_select" "opt1" model)
-        $ H.text "Option 1"
-      H.option H.! A.value "opt2"
-        H.! A.selected (lookupChecked "date_select" "opt2" model)
-        $ H.text "Option 2"
+  simpleSelect "select" "Select" model
+    [ Tuple "opt1" "Option 1", Tuple "opt2" "Option 2" ]

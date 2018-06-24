@@ -11,7 +11,7 @@ import Data.Bifunctor (bimap)
 import Data.Foldable (traverse_)
 import Data.List (List)
 import Data.List.NonEmpty as NEL
-import Data.Map (toAscUnfoldable)
+import Data.Map (toUnfoldable)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 
@@ -28,14 +28,14 @@ emptyModel =
   , formModel: emptyFormModel
   }
 
-update :: forall eff. FormMsg -> Model -> Tuple (Cmd eff FormMsg) Model
+update :: FormMsg -> Model -> Tuple (Cmd FormMsg) Model
 update (FormOK) model =
   Tuple empty $ model { button = Just "OK" }
 update (FormCancel) model =
   Tuple empty $ model { button = Just "Cancel" }
 update msg model =
   bimap
-    id
+    identity
     (\x -> model { formModel = x })
     (updateForm msg model.formModel)
 
@@ -54,7 +54,7 @@ viewModel model = do
           text k
           text ": "
           text $ NEL.intercalate ", " v)
-      (toAscUnfoldable fmodel :: List (Tuple String (NEL.NonEmptyList String)))
+      (toUnfoldable fmodel :: List (Tuple String (NEL.NonEmptyList String)))
 
 
 viewDemo :: (Model -> Markup FormMsg) -> Model -> Markup FormMsg

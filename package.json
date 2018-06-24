@@ -4,7 +4,7 @@
   "license": "MIT",
   "devDependencies": {
     "del": "^3.0.0",
-    "gulp": "^3.9.1",
+    "gulp": "^4.0.0",
     "gulp-purescript": "^2.0.1",
     "gulp-run": "^1.7.1"
   }

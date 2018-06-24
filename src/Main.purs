@@ -2,16 +2,15 @@ module Main where
 
 import Prelude
 
-import Bonsai (BONSAI, Cmd, ElementId(ElementId), debugProgram, noDebug, simpleTask, window)
+import Bonsai (Cmd, ElementId(ElementId), debugProgram, noDebug, simpleTask, window)
 import Bonsai.Core.DOM (locationHashCmd)
-import Bonsai.DOM (DOM, document, effF, locationHash)
+import Bonsai.DOM (document, effF, locationHash)
 import Bonsai.Forms (FormMsg)
 import Bonsai.Html (Markup, VNode, a, div_, input, label, li, nav, pre_, render, text, ul, vnode, (!), (#!))
 import Bonsai.Html.Attributes (checked, cls, defaultValue, href, id_, style, target, typ)
 import Bonsai.Html.Events (onCheckedChange, onClickPreventDefault)
 import Bonsai.VirtualDom as VD
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Exception (EXCEPTION)
+import Effect (Effect)
 import Control.Plus (empty, (<|>))
 import Data.Bifunctor (bimap)
 import Data.Maybe (Maybe(..), fromMaybe, isNothing)
@@ -22,7 +21,8 @@ import Demo.MiscInput as MiscInput
 import Demo.NumberInput as NumberInput
 import Demo.Radio as Radio
 import Demo.TextInput as TextInput
-import Network.HTTP.Affjax (AJAX, get)
+import Network.HTTP.Affjax (get)
+import Network.HTTP.Affjax.Response as AXRes
 
 data Demo
   = TextInputDemo
@@ -57,10 +57,9 @@ data MasterMsg
   | RadioMsg FormMsg
 
 update
-  :: forall eff
-  .  MasterMsg
+  :: MasterMsg
   -> MasterModel
-  -> Tuple (Cmd (ajax::AJAX,dom::DOM|eff) MasterMsg) MasterModel
+  -> Tuple (Cmd MasterMsg) MasterModel
 update (SetCurrent demo) model =
   let model' = model { active = demo }
   in  Tuple
@@ -115,7 +114,7 @@ update (RadioMsg msg) model =
   bimap (map RadioMsg) ( model { radioModel = _ } )
     (Common.update msg model.radioModel)
 
-loadCurrentSourceTask :: forall eff. MasterModel -> Cmd (ajax::AJAX|eff) MasterMsg
+loadCurrentSourceTask :: MasterModel -> Cmd MasterMsg
 loadCurrentSourceTask model =
   if model.showSource && isNothing formModel.source
     then go formModel
@@ -128,7 +127,7 @@ loadCurrentSourceTask model =
           empty
         Nothing ->
           simpleTask \_ -> do
-            res <- get (sourceFilename model.active)
+            res <- get AXRes.string (sourceFilename model.active)
             pure $ SetSource model.active res.response
 
 view :: MasterModel -> VNode MasterMsg
@@ -270,7 +269,7 @@ wrapModel model demoModel =
     RadioDemo -> model { radioModel = demoModel }
 
 
-main :: Eff (bonsai::BONSAI, dom::DOM, exception::EXCEPTION) Unit
+main :: Effect Unit
 main = do
   hash <- effF $ window >>= document >>= locationHash
   let demo = hashDemo hash

@@ -7,7 +7,7 @@
     "output"
   ],
   "dependencies": {
-    "purescript-bonsai-forms": "grmble/purescript-bonsai-forms#purs_0_12",
+    "purescript-bonsai-forms": "grmble/purescript-bonsai-forms#master",
     "purescript-affjax": "^6.0.0"
   },
   "devDependencies": {
